@@ -1,0 +1,46 @@
+name: Download form guides
+on:
+  workflow_dispatch:
+    inputs:
+      states:
+        description: States (comma separated)
+        default: QLD
+        required: true
+        type: string
+      date:
+        description: Meeting date YYYY-MM-DD (blank means today in Brisbane)
+        required: false
+        type: string
+      limit:
+        description: Maximum guides (1 for first test, up to 30)
+        default: '1'
+        required: true
+        type: string
+permissions:
+  contents: read
+concurrency:
+  group: racing-form-downloads
+  cancel-in-progress: false
+jobs:
+  download:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Download sequentially
+        env:
+          STATES: ${{ inputs.states }}
+          MEETING_DATE: ${{ inputs.date }}
+          LIMIT: ${{ inputs.limit }}
+        run: python download_forms.py --states "$STATES" --date "$MEETING_DATE" --limit "$LIMIT"
+      - name: Save guides and logs
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: form-guides-${{ github.run_id }}
+          path: outputs/
+          retention-days: 14
+          if-no-files-found: warn
