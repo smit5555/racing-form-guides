@@ -68,6 +68,36 @@ class Links(HTMLParser):
             if href:
                 self.links.append(href)
 
+class PageText(HTMLParser):
+    def __init__(self):
+        super().__init__()
+        self.parts = []
+        self.hidden = 0
+    def handle_starttag(self, tag, attrs):
+        if tag in ('script', 'style'):
+            self.hidden += 1
+    def handle_endtag(self, tag):
+        if tag in ('script', 'style') and self.hidden:
+            self.hidden -= 1
+    def handle_data(self, data):
+        if not self.hidden:
+            self.parts.append(data)
+
+def is_tab_meeting(body):
+    parser = PageText()
+    parser.feed(body)
+    text = re.sub(r'\s+', ' ', ' '.join(parser.parts))
+    # Match the meeting's classification, never a mention elsewhere in the guide.
+    match = re.search(r'(?<!Apprentice )Meeting Type\s*:\s*([^:()]{1,100})\(([^()]{1,60})\)', text, re.I)
+    if not match:
+        raise StopRun('Meeting Type classification missing or unrecognized; refusing to save.')
+    category = match.group(2).strip().upper()
+    if category == 'TAB MEETING':
+        return True
+    if re.fullmatch(r'NON[ -]?TAB MEETING', category):
+        return False
+    raise StopRun(f'Unrecognized Meeting Type category: {category}; refusing to save.')
+
 def discover(body, state, date):
     if 'race fields &amp; form' not in body.lower() and 'race fields & form' not in body.lower():
         raise StopRun('Calendar layout not recognized; inspect manually.')
@@ -111,7 +141,7 @@ def main():
     folder.mkdir(parents=True, exist_ok=True)
     logging.basicConfig(level=logging.INFO, format='%(asctime)s %(levelname)s %(message)s',
                         handlers=[logging.StreamHandler(), logging.FileHandler(folder / 'run.log', encoding='utf-8')])
-    manifest = {'date': date.isoformat(), 'states': states, 'files': [], 'status': 'running'}
+    manifest = {'date': date.isoformat(), 'states': states, 'files': [], 'skipped': [], 'status': 'running'}
     client = Client()
     try:
         for state in states:
@@ -128,6 +158,10 @@ def main():
                 guide = client.get(url)
                 if not re.search(r'Race\s*1\b', guide, re.I) or 'Prizemoney' not in guide:
                     raise StopRun('Expected race form content missing; stopping without saving this page.')
+                if not is_tab_meeting(guide):
+                    logging.info('Skip non-TAB meeting: %s (%s)', venue, state)
+                    manifest['skipped'].append({'venue': venue, 'url': url, 'reason': 'non-TAB meeting'})
+                    continue
                 path.write_text(guide, encoding='utf-8')
                 manifest['files'].append({'file': path.name, 'url': url, 'venue': venue})
                 logging.info('Saved %s', path)
