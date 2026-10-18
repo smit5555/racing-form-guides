@@ -16,6 +16,10 @@ on:
         default: '1'
         required: true
         type: string
+      venues:
+        description: Optional exact venue, e.g. Newcastle (one state and date required; blank uses calendar)
+        required: false
+        type: string
 permissions:
   contents: read
 concurrency:
@@ -35,7 +39,8 @@ jobs:
           STATES: ${{ inputs.states }}
           MEETING_DATE: ${{ inputs.date }}
           LIMIT: ${{ inputs.limit }}
-        run: python download_forms.py --states "$STATES" --date "$MEETING_DATE" --limit "$LIMIT"
+          VENUES: ${{ inputs.venues }}
+        run: python download_forms.py --states "$STATES" --date "$MEETING_DATE" --limit "$LIMIT" --venues "$VENUES"
       - name: Save guides and logs
         if: always()
         uses: actions/upload-artifact@v4
