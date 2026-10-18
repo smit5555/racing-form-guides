@@ -150,29 +150,85 @@ def historical_form_link(body, results_url):
             return url
     raise StopRun('Historical meeting has no matching advertised form link; stopping.')
 
+def direct_meetings(venues, state, date):
+    """Request only explicitly supplied venues, never scan guessed venue lists."""
+    meetings = []
+    month = tuple(MONTHS)[date.month - 1]
+    for venue in dict.fromkeys(v.strip() for v in venues.split('|')):
+        if not venue or len(venue) > 120 or any(ord(c) < 32 for c in venue) or ',' in venue:
+            raise ValueError('Enter venue names separated by |, without commas or control characters.')
+        if re.search(r'trial|picnic|amateur|jump\s*out', venue, re.I):
+            raise ValueError('Direct venue input must not name trials, picnic or amateur meetings.')
+        key = f'{date.year}{month}{date.day:02d},{state},{venue}'
+        meetings.append((f'{BASE}/FreeFields/Form.aspx?Key={quote(key, safe="")}', venue))
+    if len(meetings) > 30:
+        raise ValueError('At most 30 explicit venues may be supplied.')
+    return meetings
+
+def validate_direct_identity(body, venue, date):
+    # Use the meeting heading, not a historical run listed within a horse's form.
+    class Headings(HTMLParser):
+        def __init__(self):
+            super().__init__()
+            self.inside = False
+            self.parts = []
+        def handle_starttag(self, tag, attrs):
+            if tag in ('h1', 'h2', 'h3'):
+                self.inside = True
+        def handle_endtag(self, tag):
+            if tag in ('h1', 'h2', 'h3'):
+                self.inside = False
+                self.parts.append('\n')
+        def handle_data(self, data):
+            if self.inside:
+                self.parts.append(data)
+    parser = Headings()
+    parser.feed(body)
+    months = ('January','February','March','April','May','June','July','August','September','October','November','December')
+    pattern = re.compile(rf'\b0?{date.day}\s+{months[date.month-1]}\s+{date.year}\b', re.I)
+    for heading in ''.join(parser.parts).splitlines():
+        heading = re.sub(r'\s+', ' ', heading).strip()
+        if heading.casefold().startswith(venue.casefold() + ':') and pattern.search(heading):
+            return
+    raise StopRun('Requested venue/date not confirmed in meeting heading; refusing to save.')
+
 def main():
     p = argparse.ArgumentParser(description=__doc__)
     p.add_argument('--states', default='QLD')
     p.add_argument('--date', default='')
     p.add_argument('--limit', type=int, default=1, help='Maximum guides across all states')
+    p.add_argument('--venues', default='', help='Optional exact venues separated by |; requires one state and an explicit date')
     args = p.parse_args()
     states = list(dict.fromkeys(args.states.upper().split(',')))
     if not states or any(s not in STATES for s in states) or not 1 <= args.limit <= 30:
         p.error('Use QLD,NSW,VIC,SA,WA and a limit from 1 to 30.')
     date = dt.date.fromisoformat(args.date) if args.date else dt.datetime.now(ZoneInfo('Australia/Brisbane')).date()
     historical = date < dt.datetime.now(ZoneInfo('Australia/Brisbane')).date()
+    if args.venues and (len(states) != 1 or not args.date):
+        p.error('For explicit venues, select exactly one state and enter the meeting date.')
+    explicit = None
+    if args.venues:
+        try:
+            explicit = direct_meetings(args.venues, states[0], date)
+        except ValueError as exc:
+            p.error(str(exc))
     folder = Path('outputs') / date.strftime('%Y%m%d')
     folder.mkdir(parents=True, exist_ok=True)
     logging.basicConfig(level=logging.INFO, format='%(asctime)s %(levelname)s %(message)s',
                         handlers=[logging.StreamHandler(), logging.FileHandler(folder / 'run.log', encoding='utf-8')])
     manifest = {'date': date.isoformat(), 'states': states, 'files': [], 'skipped': [], 'status': 'running'}
+    manifest['lookup'] = 'explicit venues (not a complete daily meeting list)' if explicit else 'calendar'
     client = Client()
     try:
         for state in states:
-            calendar = 'Calendar_Results.aspx' if historical else 'Calendar.aspx'
-            logging.info('Using %s calendar for %s', 'recent results' if historical else 'current', date)
-            body = client.get(f'{BASE}/FreeFields/{calendar}?State={state}')
-            meetings = discover(body, state, date, historical=historical)
+            if explicit:
+                logging.info('Using supplied venue list only; daily coverage is not verified.')
+                meetings = explicit
+            else:
+                calendar = 'Calendar_Results.aspx' if historical else 'Calendar.aspx'
+                logging.info('Using %s calendar for %s', 'recent results' if historical else 'current', date)
+                body = client.get(f'{BASE}/FreeFields/{calendar}?State={state}')
+                meetings = discover(body, state, date, historical=historical)
             logging.info('%s: %d eligible meeting links for %s', state, len(meetings), date)
             for url, venue in meetings:
                 if len(manifest['files']) >= args.limit:
@@ -182,9 +238,11 @@ def main():
                 if path.exists():
                     raise StopRun(f'File already exists: {path}; refusing to overwrite.')
                 guide = client.get(url)
-                if historical:
+                if historical and not explicit:
                     url = historical_form_link(guide, url)
                     guide = client.get(url)
+                if explicit:
+                    validate_direct_identity(guide, venue, date)
                 if not re.search(r'Race\s*1\b', guide, re.I) or 'Prizemoney' not in guide:
                     raise StopRun('Expected race form content missing; stopping without saving this page.')
                 if not is_tab_meeting(guide):
