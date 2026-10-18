@@ -166,31 +166,19 @@ def direct_meetings(venues, state, date):
     return meetings
 
 def validate_direct_identity(body, venue, date):
-    # Use the meeting heading, not a historical run listed within a horse's form.
-    class Headings(HTMLParser):
-        def __init__(self):
-            super().__init__()
-            self.inside = False
-            self.parts = []
-        def handle_starttag(self, tag, attrs):
-            if tag in ('h1', 'h2', 'h3'):
-                self.inside = True
-        def handle_endtag(self, tag):
-            if tag in ('h1', 'h2', 'h3'):
-                self.inside = False
-                self.parts.append('\n')
-        def handle_data(self, data):
-            if self.inside:
-                self.parts.append(data)
-    parser = Headings()
+    # The visible meeting header may use spans/divs rather than heading tags.
+    # Restrict identity to the header before Meeting Type, excluding horse histories.
+    parser = PageText()
     parser.feed(body)
+    text = re.sub(r'\s+', ' ', ' '.join(parser.parts)).strip()
+    marker = re.search(r'(?<!Apprentice )\bMeeting Type\s*:', text, re.I)
+    if not marker:
+        raise StopRun('Meeting Type marker missing; cannot confirm requested meeting.')
+    header = text[max(0, marker.start() - 600):marker.start()]
     months = ('January','February','March','April','May','June','July','August','September','October','November','December')
-    pattern = re.compile(rf'\b0?{date.day}\s+{months[date.month-1]}\s+{date.year}\b', re.I)
-    for heading in ''.join(parser.parts).splitlines():
-        heading = re.sub(r'\s+', ' ', heading).strip()
-        if heading.casefold().startswith(venue.casefold() + ':') and pattern.search(heading):
-            return
-    raise StopRun('Requested venue/date not confirmed in meeting heading; refusing to save.')
+    pattern = re.compile(rf'(?<!\w){re.escape(venue)}\s*:\s*.{{0,300}}?\b0?{date.day}\s*,?\s*{months[date.month-1]}\s+{date.year}\b', re.I)
+    if not pattern.search(header):
+        raise StopRun('Requested venue/date not confirmed in meeting header; refusing to save.')
 
 def main():
     p = argparse.ArgumentParser(description=__doc__)
