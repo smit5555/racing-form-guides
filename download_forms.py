@@ -7,7 +7,7 @@ from pathlib import Path
 import re
 import time
 from html.parser import HTMLParser
-from urllib.parse import urljoin, urlsplit, parse_qs
+from urllib.parse import urljoin, urlsplit, parse_qs, quote, urlunsplit
 from urllib.request import Request, build_opener, HTTPRedirectHandler
 from zoneinfo import ZoneInfo
 
@@ -17,6 +17,13 @@ MONTHS = {m: i for i, m in enumerate(('Jan','Feb','Mar','Apr','May','Jun','Jul',
 
 class StopRun(RuntimeError):
     pass
+
+def encode_url(url):
+    """Encode raw spaces/non-ASCII while preserving existing URL escapes."""
+    parts = urlsplit(url)
+    return urlunsplit((parts.scheme, parts.netloc,
+                       quote(parts.path, safe='/%:@!$&\'()*+,;=-._~'),
+                       quote(parts.query, safe='%=&+,/:;?@!$\'()*-._~'), ''))
 
 class NoRedirect(HTTPRedirectHandler):
     def redirect_request(self, req, fp, code, msg, headers, newurl):
@@ -39,6 +46,7 @@ class Client:
         self.opener = build_opener(NoRedirect())
 
     def get(self, url):
+        url = encode_url(url)
         parts = urlsplit(url)
         if parts.scheme != 'https' or parts.netloc != 'racingaustralia.horse':
             raise StopRun('Unexpected destination; stopping.')
@@ -107,7 +115,7 @@ def discover(body, state, date, historical=False):
     meetings = {}
     form_links = 0
     for href in parser.links:
-        url = urljoin(BASE + '/FreeFields/', href)
+        url = encode_url(urljoin(BASE + '/FreeFields/', href))
         parts = urlsplit(url)
         expected_path = '/freefields/results.aspx' if historical else '/freefields/form.aspx'
         if parts.path.lower() != expected_path:
@@ -134,7 +142,7 @@ def historical_form_link(body, results_url):
     parser.feed(body)
     key = parse_qs(urlsplit(results_url).query).get('Key')
     for href in parser.links:
-        url = urljoin(results_url, href)
+        url = encode_url(urljoin(results_url, href))
         parts = urlsplit(url)
         if (parts.scheme == 'https' and parts.netloc == 'racingaustralia.horse'
                 and parts.path.lower() == '/freefields/form.aspx'
