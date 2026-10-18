@@ -98,8 +98,9 @@ def is_tab_meeting(body):
         return False
     raise StopRun(f'Unrecognized Meeting Type category: {category}; refusing to save.')
 
-def discover(body, state, date):
-    if 'race fields &amp; form' not in body.lower() and 'race fields & form' not in body.lower():
+def discover(body, state, date, historical=False):
+    if ('race fields &amp; form' not in body.lower() and 'race fields & form' not in body.lower()
+            and not (historical and 'horse racing results' in body.lower())):
         raise StopRun('Calendar layout not recognized; inspect manually.')
     parser = Links()
     parser.feed(body)
@@ -108,7 +109,8 @@ def discover(body, state, date):
     for href in parser.links:
         url = urljoin(BASE + '/FreeFields/', href)
         parts = urlsplit(url)
-        if parts.path.lower() != '/freefields/form.aspx':
+        expected_path = '/freefields/results.aspx' if historical else '/freefields/form.aspx'
+        if parts.path.lower() != expected_path:
             continue
         form_links += 1
         key = parse_qs(parts.query).get('Key', [''])[0]
@@ -127,6 +129,19 @@ def discover(body, state, date):
         raise StopRun('No form links found; calendar may have changed or guides are unavailable.')
     return list(meetings.values())
 
+def historical_form_link(body, results_url):
+    parser = Links()
+    parser.feed(body)
+    key = parse_qs(urlsplit(results_url).query).get('Key')
+    for href in parser.links:
+        url = urljoin(results_url, href)
+        parts = urlsplit(url)
+        if (parts.scheme == 'https' and parts.netloc == 'racingaustralia.horse'
+                and parts.path.lower() == '/freefields/form.aspx'
+                and parse_qs(parts.query).get('Key') == key):
+            return url
+    raise StopRun('Historical meeting has no matching advertised form link; stopping.')
+
 def main():
     p = argparse.ArgumentParser(description=__doc__)
     p.add_argument('--states', default='QLD')
@@ -137,6 +152,7 @@ def main():
     if not states or any(s not in STATES for s in states) or not 1 <= args.limit <= 30:
         p.error('Use QLD,NSW,VIC,SA,WA and a limit from 1 to 30.')
     date = dt.date.fromisoformat(args.date) if args.date else dt.datetime.now(ZoneInfo('Australia/Brisbane')).date()
+    historical = date < dt.datetime.now(ZoneInfo('Australia/Brisbane')).date()
     folder = Path('outputs') / date.strftime('%Y%m%d')
     folder.mkdir(parents=True, exist_ok=True)
     logging.basicConfig(level=logging.INFO, format='%(asctime)s %(levelname)s %(message)s',
@@ -145,8 +161,10 @@ def main():
     client = Client()
     try:
         for state in states:
-            body = client.get(f'{BASE}/FreeFields/Calendar.aspx?State={state}')
-            meetings = discover(body, state, date)
+            calendar = 'Calendar_Results.aspx' if historical else 'Calendar.aspx'
+            logging.info('Using %s calendar for %s', 'recent results' if historical else 'current', date)
+            body = client.get(f'{BASE}/FreeFields/{calendar}?State={state}')
+            meetings = discover(body, state, date, historical=historical)
             logging.info('%s: %d eligible meeting links for %s', state, len(meetings), date)
             for url, venue in meetings:
                 if len(manifest['files']) >= args.limit:
@@ -156,6 +174,9 @@ def main():
                 if path.exists():
                     raise StopRun(f'File already exists: {path}; refusing to overwrite.')
                 guide = client.get(url)
+                if historical:
+                    url = historical_form_link(guide, url)
+                    guide = client.get(url)
                 if not re.search(r'Race\s*1\b', guide, re.I) or 'Prizemoney' not in guide:
                     raise StopRun('Expected race form content missing; stopping without saving this page.')
                 if not is_tab_meeting(guide):
