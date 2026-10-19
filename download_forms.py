@@ -10,6 +10,7 @@ from html.parser import HTMLParser
 from urllib.parse import urljoin, urlsplit, parse_qs, quote, urlunsplit
 from urllib.request import Request, build_opener, HTTPRedirectHandler
 from zoneinfo import ZoneInfo
+from historical_calendar import lookup as recorded_meetings, SOURCE as HISTORICAL_SOURCE
 
 BASE = 'https://racingaustralia.horse'
 STATES = ('QLD', 'NSW', 'VIC', 'SA', 'WA')
@@ -180,6 +181,12 @@ def validate_direct_identity(body, venue, date):
     if not pattern.search(header):
         raise StopRun('Requested venue/date not confirmed in meeting header; refusing to save.')
 
+def form_unavailable(body):
+    parser = PageText()
+    parser.feed(body)
+    text = re.sub(r'\s+', ' ', ' '.join(parser.parts)).casefold()
+    return 'form information for this meeting is not currently available' in text
+
 def main():
     p = argparse.ArgumentParser(description=__doc__)
     p.add_argument('--states', default='QLD')
@@ -202,14 +209,28 @@ def main():
             p.error(str(exc))
     folder = Path('outputs') / date.strftime('%Y%m%d')
     folder.mkdir(parents=True, exist_ok=True)
-    logging.basicConfig(level=logging.INFO, format='%(asctime)s %(levelname)s %(message)s',
+    logging.basicConfig(level=logging.INFO, format='%(asctime)s %(levelname)s %(message)s', force=True,
                         handlers=[logging.StreamHandler(), logging.FileHandler(folder / 'run.log', encoding='utf-8')])
     manifest = {'date': date.isoformat(), 'states': states, 'files': [], 'skipped': [], 'status': 'running'}
     manifest['lookup'] = 'explicit venues (not a complete daily meeting list)' if explicit else 'calendar'
+    indexed = recorded_meetings(date, states) if not explicit else None
+    direct_lookup = bool(explicit) or indexed is not None
+    manifest['unavailable'] = []
+    manifest['checked_candidates'] = 0
+    if indexed is not None:
+        manifest['lookup'] = 'recorded historical calendar'
+        manifest['calendar_source'] = HISTORICAL_SOURCE
+        manifest['calendar_note'] = 'Recorded 19 October 2026; guide availability and venue keys checked during this run. Coverage is relative to this recorded calendar.'
+        manifest['expected_candidates'] = indexed
+        manifest['candidate_count'] = sum(map(len, indexed.values()))
     client = Client()
     try:
         for state in states:
-            if explicit:
+            if indexed is not None:
+                venues = indexed[state]
+                meetings = direct_meetings('|'.join(venues), state, date) if venues else []
+                logging.info('%s: recorded calendar lists %d candidate race meetings (TAB checked on guide)', state, len(meetings))
+            elif explicit:
                 logging.info('Using supplied venue list only; daily coverage is not verified.')
                 meetings = explicit
             else:
@@ -226,10 +247,16 @@ def main():
                 if path.exists():
                     raise StopRun(f'File already exists: {path}; refusing to overwrite.')
                 guide = client.get(url)
-                if historical and not explicit:
+                if historical and not direct_lookup:
                     url = historical_form_link(guide, url)
                     guide = client.get(url)
-                if explicit:
+                manifest['checked_candidates'] += 1
+                if direct_lookup and form_unavailable(guide):
+                    logging.warning('Guide unavailable or venue key unresolved: %s (%s)', venue, state)
+                    manifest['unavailable'].append({'venue': venue, 'state': state, 'url': url,
+                        'reason': 'Source explicitly says form unavailable; may also be an unresolved venue key.'})
+                    continue
+                if direct_lookup:
                     validate_direct_identity(guide, venue, date)
                 if not re.search(r'Race\s*1\b', guide, re.I) or 'Prizemoney' not in guide:
                     raise StopRun('Expected race form content missing; stopping without saving this page.')
@@ -238,13 +265,19 @@ def main():
                     manifest['skipped'].append({'venue': venue, 'url': url, 'reason': 'non-TAB meeting'})
                     continue
                 path.write_text(guide, encoding='utf-8')
-                manifest['files'].append({'file': path.name, 'url': url, 'venue': venue})
+                manifest['files'].append({'file': path.name, 'url': url, 'venue': venue, 'state': state})
                 logging.info('Saved %s', path)
             if len(manifest['files']) >= args.limit:
                 break
         manifest['status'] = 'complete' if manifest['files'] else 'no_guides'
+        if indexed is not None and manifest['checked_candidates'] < manifest['candidate_count']:
+            manifest['status'] = 'limited'
+            logging.warning('Download limit reached: some recorded meetings were not checked. Raise limit for the whole day.')
+        if manifest['unavailable']:
+            manifest['status'] = 'incomplete'
+            logging.warning('INCOMPLETE: %d guides unavailable or venue keys unresolved. See manifest.', len(manifest['unavailable']))
         logging.info('Finished: %d guides saved.', len(manifest['files']))
-        return 0
+        return 2 if manifest['status'] == 'incomplete' else 0
     except Exception as exc:
         manifest['status'] = 'stopped'
         manifest['reason'] = str(exc)
@@ -252,6 +285,19 @@ def main():
         return 1
     finally:
         (folder / 'manifest.json').write_text(json.dumps(manifest, indent=2), encoding='utf-8')
+        summary = [f'Date: {date}', f'Status: {manifest["status"]}', f'Lookup: {manifest["lookup"]}',
+                   f'Guides saved: {len(manifest["files"])}',
+                   f'Candidates checked: {manifest["checked_candidates"]}',
+                   f'Unavailable/unresolved: {len(manifest["unavailable"])}']
+        if indexed is not None:
+            summary.append(f'Recorded calendar candidates: {manifest["candidate_count"]}')
+            summary.append('Coverage is relative to the recorded calendar, not a guarantee of archive availability.')
+            for state in states:
+                saved = sum(f.get('state') == state for f in manifest['files'])
+                summary.append(f'{state}: {len(indexed[state])} candidates; {saved} guides saved')
+        if 'reason' in manifest:
+            summary.append('Stopped: ' + manifest['reason'])
+        (folder / 'summary.txt').write_text('\n'.join(summary) + '\n', encoding='utf-8')
 
 if __name__ == '__main__':
     raise SystemExit(main())
