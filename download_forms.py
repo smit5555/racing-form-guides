@@ -10,7 +10,7 @@ from html.parser import HTMLParser
 from urllib.parse import urljoin, urlsplit, parse_qs, quote, urlunsplit
 from urllib.request import Request, build_opener, HTTPRedirectHandler
 from zoneinfo import ZoneInfo
-from historical_calendar import lookup as recorded_meetings, SOURCE as HISTORICAL_SOURCE
+from historical_calendar import lookup as recorded_meetings, details as calendar_details, SOURCE as HISTORICAL_SOURCE
 
 BASE = 'https://racingaustralia.horse'
 STATES = ('QLD', 'NSW', 'VIC', 'SA', 'WA')
@@ -187,12 +187,22 @@ def form_unavailable(body):
     text = re.sub(r'\s+', ' ', ' '.join(parser.parts)).casefold()
     return 'form information for this meeting is not currently available' in text
 
+def output_folder(root, date, style='numeric'):
+    if style == 'readable':
+        weekdays = ('Mon','Tue','Wed','Thu','Fri','Sat','Sun')
+        name = f'{date.day} {tuple(MONTHS)[date.month-1]}_{weekdays[date.weekday()]}'
+    else:
+        name = date.strftime('%Y%m%d')
+    return Path(root) / name
+
 def main():
     p = argparse.ArgumentParser(description=__doc__)
     p.add_argument('--states', default='QLD')
     p.add_argument('--date', default='')
     p.add_argument('--limit', type=int, default=1, help='Maximum guides across all states')
     p.add_argument('--venues', default='', help='Optional exact venues separated by |; requires one state and an explicit date')
+    p.add_argument('--output-root', default='outputs')
+    p.add_argument('--folder-style', choices=('numeric','readable'), default='numeric')
     args = p.parse_args()
     states = list(dict.fromkeys(args.states.upper().split(',')))
     if not states or any(s not in STATES for s in states) or not 1 <= args.limit <= 30:
@@ -207,7 +217,7 @@ def main():
             explicit = direct_meetings(args.venues, states[0], date)
         except ValueError as exc:
             p.error(str(exc))
-    folder = Path('outputs') / date.strftime('%Y%m%d')
+    folder = output_folder(args.output_root, date, args.folder_style)
     folder.mkdir(parents=True, exist_ok=True)
     logging.basicConfig(level=logging.INFO, format='%(asctime)s %(levelname)s %(message)s', force=True,
                         handlers=[logging.StreamHandler(), logging.FileHandler(folder / 'run.log', encoding='utf-8')])
@@ -220,9 +230,12 @@ def main():
     if indexed is not None:
         manifest['lookup'] = 'recorded historical calendar'
         manifest['calendar_source'] = HISTORICAL_SOURCE
-        manifest['calendar_note'] = 'Recorded 19 October 2026; guide availability and venue keys checked during this run. Coverage is relative to this recorded calendar.'
+        manifest.update(calendar_details(date, states))
+        manifest['calendar_note'] = 'Guide availability and venue keys checked during this run. Coverage is relative to the recorded calendar; it is not independently exhaustive.'
         manifest['expected_candidates'] = indexed
         manifest['candidate_count'] = sum(map(len, indexed.values()))
+        if manifest.get('calendar_status_unconfirmed'):
+            logging.warning('Calendar has %d entries without a result status; see manifest for details.', len(manifest['calendar_status_unconfirmed']))
     client = Client()
     try:
         for state in states:
@@ -292,6 +305,8 @@ def main():
         if indexed is not None:
             summary.append(f'Recorded calendar candidates: {manifest["candidate_count"]}')
             summary.append('Coverage is relative to the recorded calendar, not a guarantee of archive availability.')
+            summary.append(f'Calendar entries without result status: {len(manifest.get("calendar_status_unconfirmed", []))}')
+            summary.append(f'Abandoned entries excluded: {len(manifest.get("excluded_abandoned", []))}')
             for state in states:
                 saved = sum(f.get('state') == state for f in manifest['files'])
                 summary.append(f'{state}: {len(indexed[state])} candidates; {saved} guides saved')
