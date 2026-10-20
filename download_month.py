@@ -14,12 +14,18 @@ from historical_calendar import lookup
 MONTH_NAMES = ('January','February','March','April','May','June','July','August','September','October','November','December')
 
 def process_month(first, states, run=subprocess.run, sleep=time.sleep, output_root=Path('outputs')):
-    dates = [first.replace(day=day) for day in range(1,calendar.monthrange(first.year,first.month)[1]+1)]
+    return process_range(first, first.replace(day=calendar.monthrange(first.year,first.month)[1]), states, run, sleep, output_root)
+
+def process_range(start, end, states, run=subprocess.run, sleep=time.sleep, output_root=Path('outputs')):
+    if end < start:
+        raise ValueError('End date must be on or after start date.')
+    dates = [start + dt.timedelta(days=n) for n in range((end-start).days+1)]
     if any(lookup(day, states) is None for day in dates):
-        raise ValueError('A full recorded calendar is required for this month and the selected states.')
-    root = (Path(output_root) / f'{MONTH_NAMES[first.month-1]} {first.year}').resolve()
+        raise ValueError('Every requested date needs recorded calendar coverage (currently 2026-05-01 through 2026-09-18).')
+    label = f'{MONTH_NAMES[start.month-1]} {start.year}' if (start.year,start.month)==(end.year,end.month) else f'{start.isoformat()} to {end.isoformat()}'
+    root = (Path(output_root) / label).resolve()
     root.mkdir(parents=True, exist_ok=True)
-    report = {'month':first.strftime('%Y-%m'), 'states':states, 'status':'running',
+    report = {'month':label, 'start_date':start.isoformat(), 'end_date':end.isoformat(), 'states':states, 'status':'running',
               'coverage':'Relative to the supplied calendar snapshots; source names/availability validated per guide.',
               'days':[]}
     code = 0
@@ -60,6 +66,7 @@ def process_month(first, states, run=subprocess.run, sleep=time.sleep, output_ro
 def save_report(root, report):
     (root / 'month-manifest.json').write_text(json.dumps(report, indent=2), encoding='utf-8')
     lines = [f'Month: {report["month"]}', f'Status: {report["status"]}',
+             f'Range: {report["start_date"]} to {report["end_date"]}',
              f'Days processed: {len(report["days"])}',
              f'Guides saved: {sum(d["saved"] for d in report["days"])}',
              'Coverage is relative to the supplied recorded calendar.',
@@ -70,17 +77,22 @@ def save_report(root, report):
 
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument('--month', required=True, help='YYYY-MM, currently 2026-05 through 2026-08')
+    parser.add_argument('--month', help='Optional legacy whole-month input YYYY-MM')
+    parser.add_argument('--start-date', help='First day, YYYY-MM-DD (inclusive)')
+    parser.add_argument('--end-date', help='Last day, YYYY-MM-DD (inclusive)')
     parser.add_argument('--states', default='QLD,NSW,VIC,SA,WA')
     args = parser.parse_args()
     try:
-        if len(args.month) != 7:
-            raise ValueError('Use YYYY-MM for the month.')
-        first = dt.date.fromisoformat(args.month+'-01')
         states = list(dict.fromkeys(s.strip().upper() for s in args.states.split(',')))
         if not states or any(s not in forms.STATES for s in states):
             raise ValueError('Use only QLD, NSW, VIC, SA and WA.')
-        return process_month(first, states)
+        if args.month:
+            if args.start_date or args.end_date or len(args.month) != 7:
+                raise ValueError('Use either --month or both date inputs.')
+            return process_month(dt.date.fromisoformat(args.month+'-01'), states)
+        if not args.start_date or not args.end_date:
+            raise ValueError('Supply both start date and end date.')
+        return process_range(dt.date.fromisoformat(args.start_date), dt.date.fromisoformat(args.end_date), states)
     except ValueError as exc:
         parser.error(str(exc))
 
