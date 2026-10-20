@@ -1,17 +1,17 @@
-name: Download a month of form guides
+name: Download a date range of form guides
 on:
   workflow_dispatch:
     inputs:
-      month:
-        description: Calendar month
+      start_date:
+        description: First date (YYYY-MM-DD, inclusive)
         required: true
-        default: '2026-08'
-        type: choice
-        options:
-          - '2026-08'
-          - '2026-07'
-          - '2026-06'
-          - '2026-05'
+        default: '2026-08-15'
+        type: string
+      end_date:
+        description: Last date (YYYY-MM-DD, inclusive)
+        required: true
+        default: '2026-08-17'
+        type: string
       states:
         description: States (comma separated)
         default: QLD,NSW,VIC,SA,WA
@@ -31,11 +31,12 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: '3.12'
-      - name: Download month sequentially
+      - name: Download date range sequentially
         env:
-          MONTH: ${{ inputs.month }}
+          START_DATE: ${{ inputs.start_date }}
+          END_DATE: ${{ inputs.end_date }}
           STATES: ${{ inputs.states }}
-        run: python download_month.py --month "$MONTH" --states "$STATES"
+        run: python download_month.py --start-date "$START_DATE" --end-date "$END_DATE" --states "$STATES"
       - name: Save daily guides and monthly report
         if: always()
         uses: actions/upload-artifact@v4
