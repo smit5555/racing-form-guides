@@ -1,0 +1,46 @@
+name: Download a month of form guides
+on:
+  workflow_dispatch:
+    inputs:
+      month:
+        description: Calendar month
+        required: true
+        default: '2026-08'
+        type: choice
+        options:
+          - '2026-08'
+          - '2026-07'
+          - '2026-06'
+          - '2026-05'
+      states:
+        description: States (comma separated)
+        default: QLD,NSW,VIC,SA,WA
+        required: true
+        type: string
+permissions:
+  contents: read
+concurrency:
+  group: racing-form-downloads
+  cancel-in-progress: false
+jobs:
+  download:
+    runs-on: ubuntu-latest
+    timeout-minutes: 180
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Download month sequentially
+        env:
+          MONTH: ${{ inputs.month }}
+          STATES: ${{ inputs.states }}
+        run: python download_month.py --month "$MONTH" --states "$STATES"
+      - name: Save daily guides and monthly report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: monthly-form-guides-${{ github.run_id }}
+          path: outputs/
+          retention-days: 14
+          if-no-files-found: warn
