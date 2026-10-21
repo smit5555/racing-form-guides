@@ -165,6 +165,20 @@ class RulesTests(unittest.TestCase):
         self.assertEqual(summary['selected_settled'],1);self.assertEqual(summary['selected_unresolved'],1)
         self.assertEqual(len(issues),1)
 
+    def test_ff_and_lp_preserve_win_only_settlement(self):
+        payload={'version':'V2-R1-experimental','config_hash':digest(self.c),'runners':score_races([race()],self.c)}
+        for code in ('FF','LP'):
+            body=results_html().replace('<td>2</td><td>2</td>',f'<td>{code}</td><td>2</td>')
+            parsed=result_page(body,race())[1]
+            self.assertEqual(parsed[1]['status'],'dnf');self.assertIsNone(parsed[1]['finish'])
+            self.assertEqual(parsed[1]['finish_label'],code)
+            summary,_,issues=summarise(payload,{race()['id']:parsed})
+            self.assertEqual(summary['paper_profit_loss'],22);self.assertEqual(issues,[])
+            body=results_html().replace('<td>1</td><td>1</td>',f'<td>{code}</td><td>1</td>').replace('<td>2</td><td>2</td>','<td>1</td><td>2</td>')
+            parsed=result_page(body,race())[1]
+            summary,_,issues=summarise(payload,{race()['id']:parsed})
+            self.assertEqual(summary['paper_profit_loss'],-10);self.assertEqual(issues,[])
+
     def test_settlement_and_full_field_validation(self):
         rows=score_races([race()],self.c)
         payload={'version':'V2-R1-experimental','config_hash':digest(self.c),'runners':rows}

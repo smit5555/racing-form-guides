@@ -119,7 +119,9 @@ def result_page(body,identity):
                 value=float(price[1])
                 if not math.isfinite(value) or value<=1:raise StopResults('Invalid SP')
                 entry={'number':int(num[1]),'name':row['horse'],'finish':int(finish),'sp':value,'status':'finished'}
-            elif finish.upper() in ('F','PU','UR','LR','DNF','TFF'):
+            # FF = Failed to Finish; LP = Left at Post (official form key).
+            # Explicit Scratched status above continues to take precedence.
+            elif finish.upper() in ('F','PU','UR','LR','DNF','TFF','FF','LP'):
                 price=re.fullmatch(r'\$(\d+(?:\.\d+)?)(?:[eE]?[fF])?',sp)
                 if not price:raise StopResults('Missing DNF SP')
                 value=float(price[1])
