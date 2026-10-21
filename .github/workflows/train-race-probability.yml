@@ -1,0 +1,31 @@
+name: Train race probability model (offline development)
+on:
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  train:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    env:
+      OPENBLAS_NUM_THREADS: '1'
+      OMP_NUM_THREADS: '1'
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Install the fixed numeric dependency
+        run: python -m pip install -r race_model/requirements.txt
+      - name: Verify maths, data isolation and prediction reproducibility
+        run: python -m unittest race_model.test_model -q
+      - name: Fit August and report September development performance
+        run: python -m race_model.train --output probability-development
+      - name: Save model and diagnostics
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: race-probability-development-${{ github.run_id }}
+          path: probability-development/
+          if-no-files-found: warn
+          retention-days: 90
