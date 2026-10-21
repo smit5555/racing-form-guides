@@ -81,7 +81,9 @@ def result_page(body,identity):
             cells=[n.text() for n in tr.children if isinstance(n,Node) and n.tag=='td']
             if not cells:continue
             if len(cells)!=len(headers):raise StopResults('Results table columns changed')
-            row=dict(zip(headers,cells));num=re.fullmatch(r'\d+',row['no'])
+            # RA retains the emergency suffix on promoted starters and scratches.
+            # It is a label, not part of the numerical runner identity.
+            row=dict(zip(headers,cells));num=re.fullmatch(r'(\d+)(e)?',row['no'],re.I)
             if not num:raise StopResults('Unsupported result runner number')
             finish=row['finish'].strip();sp=row['starting price'].replace(' ','')
             if finish.isdigit():
@@ -89,16 +91,17 @@ def result_page(body,identity):
                 if not price:raise StopResults('Unrecognised Starting Price; no dividend substitution')
                 value=float(price[1])
                 if not math.isfinite(value) or value<=1:raise StopResults('Invalid SP')
-                entry={'number':int(num[0]),'name':row['horse'],'finish':int(finish),'sp':value,'status':'finished'}
+                entry={'number':int(num[1]),'name':row['horse'],'finish':int(finish),'sp':value,'status':'finished'}
             elif finish.upper() in ('F','PU','UR','LR','DNF','TFF'):
                 price=re.fullmatch(r'\$(\d+(?:\.\d+)?)(?:[eE]?[fF])?',sp)
                 if not price:raise StopResults('Missing DNF SP')
                 value=float(price[1])
                 if not math.isfinite(value) or value<=1:raise StopResults('Invalid DNF SP')
-                entry={'number':int(num[0]),'name':row['horse'],'finish':None,'sp':value,'status':'dnf'}
+                entry={'number':int(num[1]),'name':row['horse'],'finish':None,'sp':value,'status':'dnf'}
             elif not finish and not sp:
-                entry={'number':int(num[0]),'name':row['horse'],'finish':None,'sp':None,'status':'nonstarter_or_unresolved'}
+                entry={'number':int(num[1]),'name':row['horse'],'finish':None,'sp':None,'status':'nonstarter_or_unresolved'}
             else:raise StopResults('Unsupported finish/dead heat: inspect official results')
+            entry['number_label']=row['no']
             entries.append(entry)
         output[race]=entries
     if not output:raise StopResults('No recognised official result tables')

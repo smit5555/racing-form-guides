@@ -133,6 +133,14 @@ class RulesTests(unittest.TestCase):
         with self.assertRaises(StopResults):result_page(results_html('Win Dividend'),race())
         with self.assertRaises(StopResults):result_page(results_html().replace('Sunday, 30','Monday, 31'),race())
 
+    def test_emergency_number_suffix_on_starters_and_scratches(self):
+        body=results_html().replace('<td>1</td><td>1</td>','<td>1</td><td>1e</td>')
+        body=body.replace('</table></html>','<tr><td></td><td>13e</td><td>RESERVE</td><td></td></tr></table></html>')
+        rows=result_page(body,race())[1]
+        self.assertEqual(rows[0]['number'],1);self.assertEqual(rows[0]['number_label'],'1e')
+        self.assertEqual(rows[2]['number'],13);self.assertEqual(rows[2]['status'],'nonstarter_or_unresolved')
+        with self.assertRaises(StopResults):result_page(body.replace('<td>1e</td>','<td>1x</td>'),race())
+
     def test_settlement_and_full_field_validation(self):
         rows=score_races([race()],self.c)
         payload={'version':'V2-R1-experimental','config_hash':digest(self.c),'runners':rows}
