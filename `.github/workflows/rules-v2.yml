@@ -1,0 +1,86 @@
+name: V2 systematic form assessment (no AI)
+on:
+  workflow_dispatch:
+    inputs:
+      guide_run_id:
+        description: Run number from your saved form download URL (/actions/runs/NUMBER)
+        required: true
+        type: string
+      start_date:
+        description: First date YYYY-MM-DD
+        required: true
+        type: string
+      end_date:
+        description: Last date YYYY-MM-DD (inclusive)
+        required: true
+        type: string
+      fetch_results:
+        description: After locking predictions, fetch official results for paper evaluation
+        default: false
+        required: true
+        type: boolean
+permissions:
+  contents: read
+  actions: read
+concurrency:
+  group: rules-v2-research
+  cancel-in-progress: false
+jobs:
+  assess:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Test extraction, calculations and prediction locks
+        run: python -m unittest rules_v2.test_rules -q
+      - name: Read your existing saved guide artifact
+        uses: actions/download-artifact@v5
+        with:
+          run-id: ${{ inputs.guide_run_id }}
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          path: ${{ runner.temp }}/rules-v2-guides
+      - name: Score all supplied fields and lock selections (no AI or results requests)
+        env:
+          GUIDE_RUN_ID: ${{ inputs.guide_run_id }}
+          START_DATE: ${{ inputs.start_date }}
+          END_DATE: ${{ inputs.end_date }}
+          INPUT_FOLDER: ${{ runner.temp }}/rules-v2-guides
+        run: python -m rules_v2.run --guides "$INPUT_FOLDER" --start-date "$START_DATE" --end-date "$END_DATE" --exposed-races rules_v2/exposed-races.csv --output systematic-v2-predictions
+      - name: Publish locked predictions before any results job
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: systematic-v2-predictions-${{ github.run_id }}
+          path: systematic-v2-predictions/
+          retention-days: 90
+          if-no-files-found: warn
+  results:
+    if: ${{ inputs.fetch_results }}
+    needs: assess
+    runs-on: ubuntu-24.04
+    timeout-minutes: 120
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Load already published prediction lock
+        uses: actions/download-artifact@v5
+        with:
+          name: systematic-v2-predictions-${{ github.run_id }}
+          path: ${{ runner.temp }}/rules-v2-lock
+      - name: Fetch results sequentially and evaluate without changing scores
+        env:
+          LOCK_FOLDER: ${{ runner.temp }}/rules-v2-lock
+        run: python -m rules_v2.results --locked-folder "$LOCK_FOLDER" --output systematic-v2-results
+      - name: Preserve results and partial progress even if blocked
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: systematic-v2-results-${{ github.run_id }}
+          path: systematic-v2-results/
+          retention-days: 90
+          if-no-files-found: warn
