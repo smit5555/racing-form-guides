@@ -1,0 +1,44 @@
+name: V2 results from locked predictions
+on:
+  workflow_dispatch:
+    inputs:
+      assessment_run_id:
+        description: Run number containing your saved systematic-v2-predictions artifact
+        required: true
+        type: string
+permissions:
+  contents: read
+  actions: read
+concurrency:
+  group: rules-v2-research
+  cancel-in-progress: false
+jobs:
+  results:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 120
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Test results parsing and settlement
+        run: python -m unittest rules_v2.test_rules -q
+      - name: Read existing prediction lock without rerunning assessment
+        uses: actions/download-artifact@v5
+        with:
+          name: systematic-v2-predictions-${{ inputs.assessment_run_id }}
+          run-id: ${{ inputs.assessment_run_id }}
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          path: ${{ runner.temp }}/rules-v2-lock
+      - name: Fetch official outcomes against existing locked selections
+        env:
+          LOCK_FOLDER: ${{ runner.temp }}/rules-v2-lock
+        run: python -m rules_v2.results --locked-folder "$LOCK_FOLDER" --output systematic-v2-results
+      - name: Save outcomes and partial progress
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: systematic-v2-results-${{ github.run_id }}
+          path: systematic-v2-results/
+          retention-days: 90
+          if-no-files-found: warn
