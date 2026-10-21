@@ -1,0 +1,19 @@
+{
+  "version": "V2-R1-experimental",
+  "weights": {"recent_finish": 40, "recent_margin": 20, "distance": 15, "going": 10, "recency": 10, "weight_change": 5},
+  "recent_starts": 3,
+  "minimum_prior_completed_starts": 2,
+  "distance_tolerance": 0.10,
+  "minimum_distance_starts_for_selection": 1,
+  "maximum_days_since_start_for_selection": 60,
+  "minimum_score": 70,
+  "minimum_score_lead": 8,
+  "minimum_known_weight": 80,
+  "unknown_factor_score": 0.5,
+  "margin_cap_lengths": 10,
+  "stake": 10,
+  "daily_cap": 275,
+  "exclude_jumps": true,
+  "probabilities_enabled": false,
+  "minimum_prices_enabled": false
+}
