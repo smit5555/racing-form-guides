@@ -64,8 +64,8 @@ def load_lock(folder):
     p=Path(folder)
     payload=json.loads((p/'locked-predictions.json').read_text(encoding='utf-8'))
     if digest(payload)!=(p/'locked-predictions.sha256').read_text().strip():raise ValueError('Locked predictions hash mismatch')
-    if not payload.get('locked_utc') or not payload['version'].startswith('V2-R'):
-        raise ValueError('A deterministic V2 prediction lock is required')
+    if not payload.get('locked_utc') or not payload['version'].startswith(('V2-R', 'V3-A-')):
+        raise ValueError('A deterministic V2 or V3-A prediction lock is required')
     locked=dt.datetime.fromisoformat(payload['locked_utc'])
     if locked.tzinfo is None or locked>dt.datetime.now(dt.timezone.utc):raise ValueError('Invalid prediction-lock timestamp')
     return payload
@@ -199,7 +199,7 @@ def summarise(payload,outcomes):
         'paper_profit_loss':round(ret-staked,2),'roi':(ret-staked)/staked if staked else None,
         'win_rate':sum(r['win'] for r in settled)/len(settled) if settled else None,
         'races_unresolved':len(issues),'probabilities':'Not produced by this ranking baseline',
-        'price_qualification':'Not applicable: no minimum prices in V2-R1','pre_race_qualification':'Unknown',
+        'price_qualification':'Not applicable: no minimum prices in this ranking model','pre_race_qualification':'Unknown',
         'historical_reconstruction':True}
     running=peak=max_drawdown=0.0;losing=longest=0
     for r in sorted(settled,key=lambda r:(r['date'],r['id'])):
@@ -222,7 +222,7 @@ def settle(folder,output,client=None):
             url='https://racingaustralia.horse/FreeFields/Results.aspx?Key='+quote(key,safe='')
             body=client.get(url)
             path=out/'official-pages'/f'{state}_{date}_{venue.replace("/","_")}.html'
-            path.write_text(body,encoding='utf-8')
+            path.write_text(body,encoding='utf-8',newline='')
             parsed=result_page(body,identity)
             source={'date':date,'state':state,'meeting':venue,'url':url,'retrieved_utc':now(),
                     'body_sha256':hashlib.sha256(body.encode('utf-8')).hexdigest()}
@@ -258,7 +258,7 @@ def settle(folder,output,client=None):
             groups.append({'group':factor,'value':value,'runners':len(pool),'wins':sum(r['win'] for r in pool),
                            'win_rate':sum(r['win'] for r in pool)/len(pool) if pool else None})
     csv_file(out/'diagnostics.csv',groups,['group','value','runners','wins','win_rate'])
-    (out/'summary.md').write_text('# V2-R1 historical paper results\n\n'+
+    (out/'summary.md').write_text('# '+payload['version']+' historical paper results\n\n'+
         'Predictions were loaded from a saved hash-checked lock before results requests. No scores were changed.\n\n'+
         'No minimum-price rule or calibrated probabilities exist in this baseline. Returns use official decimal SP and fixed paper stakes.\n\n'+
         '```json\n'+json.dumps(summary,indent=2)+'\n```\n',encoding='utf-8')

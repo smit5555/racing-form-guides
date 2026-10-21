@@ -50,7 +50,7 @@ def exports(out,payload):
     csv_file(out/'prior-starts.csv',starts,['target_date','prior_date','state','meeting','race','number','name','finish','field_size','distance','going','weight','margin','finish_percentile','evidence'])
     excluded=[{k:r[k] for k in ('date','meeting','race','guide','exclusions')} for r in payload['races'] if r['exclusions']]
     csv_file(out/'excluded-races.csv',excluded,['date','meeting','race','guide','exclusions'])
-    lines=['# V2-R1 deterministic paper test','',f'Rules: {payload["config"]["version"]}; config hash: {payload["config_hash"]}',
+    lines=['# '+payload['version']+' deterministic paper test','',f'Rules: {payload["config"]["version"]}; config hash: {payload["config_hash"]}',
         f'Guides parsed: {len(payload["sources"])}; races: {len(payload["races"])}; eligible races: {sum(not r["exclusions"] for r in payload["races"])}.',
         f'Selections: {len(selected)}; total potential stake across dates: ${sum(r["stake"] for r in selected)}.',
         'No AI calls. Scores are not probabilities. Minimum prices and confidence are deliberately not invented.',
@@ -63,7 +63,7 @@ def exports(out,payload):
         lines.append(f'| {r["date"]} | {r["meeting"].replace("|","/")} | {r["race"]} | #{r["number"]} {r["name"].replace("|","/")} | {r["score"]:.2f} | {r["score_lead"]:.2f} | ${r["stake"]} |')
     for r in selected:
         lines += ['',f'## {r["date"]} {r["meeting"]} R{r["race"]} #{r["number"]} {r["name"]}',
-          'Factor values (0–1, unknown=null): '+json.dumps(r['factors']),
+          'Factor values (0â€“1, unknown=null): '+json.dumps(r['factors']),
           f'Source: {r["citation"]}. Known factor weight {r["known_weight"]}/100.',
           'Risk flags: '+(', '.join(r['missing_factors']) or 'No missing scored factors; unscored class/pace and historical-source uncertainty still apply.')]
     lines += ['','Every runner, rejected race and selection reason is retained. No automatic parameter optimisation is performed.',
@@ -74,7 +74,7 @@ def exports(out,payload):
 
 
 def assess(folder,start,end,output,config_path=None,exposed=None):
-    if end<start or (end-start).days>30:raise ValueError('Choose an inclusive range of 1–31 days')
+    if end<start or (end-start).days>30:raise ValueError('Choose an inclusive range of 1â€“31 days')
     c=config_at(config_path)
     out=Path(output);out.mkdir(parents=True,exist_ok=False);(out/'sources').mkdir()
     races=[];sources=[];issues=[];seen={};race_ids=set()
