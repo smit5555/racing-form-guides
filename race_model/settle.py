@@ -8,9 +8,66 @@ from pathlib import Path
 from urllib.parse import quote
 
 from rules_v2.results import Client, SavedResults, StopResults, result_page, summarise
+from rules_v2.guides import Tree
 from rules_v2.run import csv_file, now
 from .assess import load_predictions
 from .core import canonical, digest
+
+
+BLOCK_MARKERS=('captcha','access denied','verify you are human','checking your browser','cf-chl-',
+               'unusual traffic','request blocked','just a moment','incapsula','challenge-platform',
+               'enable javascript and cookies')
+
+
+def parse_result(body,identity):
+    """Only a verified matching meeting's explicit unavailable notice is recoverable."""
+    if any(marker in body.lower() for marker in BLOCK_MARKERS):
+        raise StopResults('CAPTCHA/block detected in result page; no further meetings')
+    try:return result_page(body,identity),False
+    except StopResults as exc:
+        # result_page checks heading, date and the page's own state/venue Key
+        # before reaching this specific no-table error. Other failures still stop.
+        if (str(exc)=='No recognised official result tables'
+            and 'results for this meeting are not currently available' in body.lower()
+            and Tree(body).root.find('race-title') is None):
+            return {},True
+        raise
+
+
+class ResumeResults(SavedResults):
+    """Reuse verified archive pages, then request only meetings not in the archive."""
+    def __init__(self,path,meetings):
+        super().__init__(path)
+        self.live=Client()
+        archive_sha=hashlib.sha256(Path(path).read_bytes()).hexdigest()
+        try:
+            if 'summary.json' in self.archive.namelist():
+                prior=json.loads(self.archive.read('summary.json'))
+                reason=prior.get('stopped_reason')
+                if prior.get('status')=='stopped' and reason!='No recognised official result tables':
+                    raise ValueError('Saved run stopped on an access/parser error; inspect it before any resume request')
+            for (date,state,venue),identity in meetings.items():
+                day=dt.date.fromisoformat(date)
+                key=f'{day.year}{day.strftime("%b")}{day.day:02d},{state},{venue}'
+                url='https://racingaustralia.horse/FreeFields/Results.aspx?Key='+quote(key,safe='')
+                name=f'official-pages/{state}_{date}_{venue.replace("/","_")}.html'
+                if url in self.sources or name not in self.archive.namelist():continue
+                # Older code wrote the failed page before recording source metadata.
+                # Accept that extra page ONLY if identity and explicit unavailable
+                # status pass inspection. Never silently refetch an unknown/block page.
+                body=self.archive.read(name).decode('utf-8-sig')
+                _,unavailable=parse_result(body,identity)
+                if not unavailable:raise ValueError('Unindexed saved page needs review before resume')
+                self.sources[url]=dict(url=url,date=date,state=state,meeting=venue,retrieved_utc=None,
+                    body_sha256=hashlib.sha256(body.encode()).hexdigest(),source_status='explicit_unavailable',
+                    recovered_from_archive_sha256=archive_sha,original_source_manifest_entry_missing=True,
+                    recovery_verified_utc=now())
+        except Exception:
+            self.close();raise
+
+    def get(self,url):
+        if url in self.sources:return super().get(url)
+        return self.live.get(url)
 
 
 def metrics(payload,rows):
@@ -47,31 +104,49 @@ def metrics(payload,rows):
         calibration=bins,betting_policy='No bets or stake allocation. Official SP is settlement evidence only, not an assessment feature.')
 
 
-def run(folder,output,client=None):
+def run(folder,output,client=None,resume_zip=None):
     payload=load_predictions(folder)  # Validate before constructing any network client.
     out=Path(output);out.mkdir(parents=True,exist_ok=False);(out/'official-pages').mkdir()
-    client=client or Client();outcomes={};sources=[];error=None
+    outcomes={};sources=[];error=None;unavailable=[];cached_count=0;fresh_count=0
     meetings={(r['date'],r['state'],r['meeting']):r for r in payload['races'] if not r['exclusions']}
+    if resume_zip is not None and client is not None:raise ValueError('Choose a client or resume archive')
+    client=client or (ResumeResults(resume_zip,meetings) if resume_zip is not None else Client())
     try:
         for (date,state,venue),identity in sorted(meetings.items()):
             day=dt.date.fromisoformat(date);key=f'{day.year}{day.strftime("%b")}{day.day:02d},{state},{venue}'
             url='https://racingaustralia.horse/FreeFields/Results.aspx?Key='+quote(key,safe='')
+            cached=isinstance(client,SavedResults) and url in client.sources
+            if not cached:fresh_count+=1
             body=client.get(url)
             path=out/'official-pages'/f'{state}_{date}_{venue.replace("/","_")}.html'
             path.write_text(body,encoding='utf-8',newline='')
-            entries=result_page(body,identity)
             source=dict(date=date,state=state,meeting=venue,url=url,retrieved_utc=now(),body_sha256=hashlib.sha256(body.encode()).hexdigest())
-            if isinstance(client,SavedResults):
+            if isinstance(client,SavedResults) and url in client.sources:
                 source['retrieved_utc']=client.sources[url]['retrieved_utc'];source['replayed_utc']=now()
+                for k in ('recovered_from_archive_sha256','original_source_manifest_entry_missing','recovery_verified_utc'):
+                    if k in client.sources[url]:source[k]=client.sources[url][k]
+                source['replayed_from_saved_archive']=True;cached_count+=1
+            # Preserve provenance even if parsing this page stops the run.
             sources.append(source)
+            entries,is_unavailable=parse_result(body,identity)
+            if is_unavailable:
+                source['source_status']='explicit_unavailable'
+                unavailable.append(dict(date=date,state=state,meeting=venue,url=url,
+                    reason='Verified meeting page explicitly says results are not currently available; outcomes remain unknown'))
+                continue
+            source['source_status']='parsed'
             for race,rows in entries.items():outcomes[f'{date}|{state}|{venue}|{race}']=[r|{'source_url':url,'retrieved_utc':source['retrieved_utc']} for r in rows]
             (out/'checkpoint.json').write_bytes(canonical(outcomes))
     except (StopResults,ValueError,OSError) as exc:error=str(exc)
+    finally:
+        if resume_zip is not None:client.close()
     _,rows,issues=summarise(payload,outcomes)
     summary=metrics(payload,rows)
     summary.update(status='stopped' if error else 'processed_with_unresolved' if issues else 'processed',stopped_reason=error,
-        official_meetings_fetched=len(sources),result_mode='saved_archive_no_network' if isinstance(client,SavedResults) else 'live_requests',created_utc=now())
-    for name,value in (('summary.json',summary),('unresolved.json',issues),('sources.json',sources)):(out/name).write_bytes(canonical(value))
+        official_meetings_fetched=len(sources),cached_meetings_reused=cached_count,new_meetings_requested=fresh_count,
+        meetings_explicitly_unavailable=len(unavailable),
+        result_mode='resume_saved_then_missing_only' if resume_zip is not None else 'saved_archive_no_network' if isinstance(client,SavedResults) else 'live_requests',created_utc=now())
+    for name,value in (('summary.json',summary),('unresolved.json',issues),('sources.json',sources),('unavailable-meetings.json',unavailable)):(out/name).write_bytes(canonical(value))
     if rows:
         fields=list(dict.fromkeys(k for row in rows for k in row))
         csv_file(out/'research-data.csv',rows,fields)
@@ -93,12 +168,14 @@ def run(folder,output,client=None):
 
 def main():
     p=argparse.ArgumentParser(description=__doc__);p.add_argument('--locked-folder',required=True);p.add_argument('--output',required=True)
-    p.add_argument('--saved-results-zip')
+    archive=p.add_mutually_exclusive_group()
+    archive.add_argument('--saved-results-zip')
+    archive.add_argument('--resume-results-zip',help='Reuse saved pages and request only meetings absent from this archive')
     a=p.parse_args();reader=None
     try:
         if a.saved_results_zip:reader=SavedResults(a.saved_results_zip)
-        run(a.locked_folder,a.output,reader)
-    except (ValueError,OSError,KeyError) as exc:p.exit(1,str(exc)+'\n')
+        run(a.locked_folder,a.output,reader,a.resume_results_zip)
+    except (ValueError,OSError,KeyError,StopResults) as exc:p.exit(1,str(exc)+'\n')
     finally:
         if reader is not None:reader.close()
 

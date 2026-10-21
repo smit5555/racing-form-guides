@@ -6,14 +6,15 @@ from pathlib import Path
 import shutil
 import tempfile
 import unittest
-from unittest.mock import Mock
+from unittest.mock import Mock,patch
+import zipfile
 
 from rules_v2.results import SavedResults,StopResults
 from rules_v2.test_rules import guide_html,results_html
 from .core import fit,canonical,digest
 from .test_model import toy
 from .assess import run,load_model,load_predictions,apply_model
-from .settle import run as settle
+from .settle import run as settle,parse_result
 
 
 class AssessmentTests(unittest.TestCase):
@@ -81,6 +82,66 @@ class AssessmentTests(unittest.TestCase):
         summary=json.loads((self.p/'results/summary.json').read_text())
         self.assertEqual(summary['status'],'stopped');self.assertEqual(summary['top_picks_unresolved'],1)
         self.assertIsNone(summary['model_matched_win_rate'])
+
+    def unavailable_page(self):
+        return results_html().split('<table')[0]+'<p>Results for this meeting are not currently available.</p></html>'
+
+    def test_explicit_unavailable_is_unknown_not_whole_run_error(self):
+        self.assess();client=Mock();client.get.return_value=self.unavailable_page()
+        s=settle(self.p/'predictions/probability-lock',self.p/'results',client)
+        self.assertEqual(s['status'],'processed_with_unresolved')
+        self.assertEqual(s['meetings_explicitly_unavailable'],1)
+        self.assertEqual(s['top_picks_unresolved'],1)
+        self.assertEqual(s['top_picks_settled'],0)
+        self.assertIsNone(s['model_matched_win_rate'])
+        self.assertEqual(len(json.loads((self.p/'results/sources.json').read_text())),1)
+
+    def test_unknown_layout_still_stops_and_keeps_page_provenance(self):
+        self.assess();client=Mock();client.get.return_value=self.unavailable_page().replace('Results for this meeting are not currently available.','Unexpected content')
+        with self.assertRaisesRegex(ValueError,'No recognised'):settle(self.p/'predictions/probability-lock',self.p/'results',client)
+        s=json.loads((self.p/'results/summary.json').read_text())
+        self.assertEqual(s['status'],'stopped')
+        self.assertEqual(len(json.loads((self.p/'results/sources.json').read_text())),1)
+
+    def test_unavailable_notice_cannot_hide_identity_or_block_error(self):
+        identity={'date':'2026-08-30','state':'WA','meeting':'Test'}
+        with self.assertRaisesRegex(StopResults,'mismatch'):
+            parse_result(self.unavailable_page().replace('Test: Club','WRONG: Club'),identity)
+        with self.assertRaisesRegex(StopResults,'CAPTCHA'):
+            parse_result(self.unavailable_page()+' CAPTCHA',identity)
+        with self.assertRaisesRegex(StopResults,'No recognised'):
+            parse_result(results_html('Other Odds')+'Results for this meeting are not currently available.',identity)
+
+    def test_resume_recovers_legacy_unindexed_unavailable_and_fetches_only_next(self):
+        body=guide_html().replace('2026Aug30','2026Aug31').replace('Sunday, 30 August 2026','Monday, 31 August 2026')
+        (self.guides/'WA_20260831_Test.html').write_text(body)
+        run(self.guides,self.folder,dt.date(2026,8,30),dt.date(2026,8,31),self.p/'predictions')
+        legacy=self.p/'legacy.zip'
+        with zipfile.ZipFile(legacy,'w') as z:
+            z.writestr('sources.json','[]')
+            z.writestr('summary.json',json.dumps({'status':'stopped','stopped_reason':'No recognised official result tables'}))
+            z.writestr('official-pages/WA_2026-08-30_Test.html',self.unavailable_page())
+        result=results_html().replace('2026Aug30','2026Aug31').replace('Sunday, 30 August 2026','Monday, 31 August 2026')
+        with patch('race_model.settle.Client.get',return_value=result) as live:
+            s=settle(self.p/'predictions/probability-lock',self.p/'results',resume_zip=legacy)
+        live.assert_called_once()
+        self.assertIn('2026Aug31',live.call_args[0][0])
+        self.assertEqual(s['cached_meetings_reused'],1)
+        self.assertEqual(s['new_meetings_requested'],1)
+        self.assertEqual(s['matched_full_field_races'],1)
+        self.assertEqual(s['top_picks_unresolved'],1)
+        recovered=json.loads((self.p/'results/sources.json').read_text())[0]
+        self.assertTrue(recovered['original_source_manifest_entry_missing'])
+        self.assertIsNone(recovered['retrieved_utc'])
+
+    def test_resume_refuses_saved_block_before_live_request(self):
+        self.assess();archive=self.p/'blocked.zip'
+        with zipfile.ZipFile(archive,'w') as z:
+            z.writestr('sources.json','[]')
+            z.writestr('summary.json',json.dumps({'status':'stopped','stopped_reason':'CAPTCHA/block'}))
+        with patch('race_model.settle.Client.get') as live:
+            with self.assertRaisesRegex(ValueError,'inspect'):settle(self.p/'predictions/probability-lock',self.p/'results',resume_zip=archive)
+        live.assert_not_called()
 
 
 if __name__=='__main__':unittest.main()
