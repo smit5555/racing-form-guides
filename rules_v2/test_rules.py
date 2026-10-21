@@ -2,6 +2,8 @@ import copy
 import csv
 import datetime as dt
 import json
+import hashlib
+import zipfile
 from pathlib import Path
 import tempfile
 import unittest
@@ -10,7 +12,7 @@ from unittest.mock import Mock, patch
 from .core import config_at, features, history_row, digest, score_races, recency_score
 from .guides import parse_guide
 from .run import assess, csv_file
-from .results import result_page, summarise, load_lock, settle, StopResults
+from .results import result_page, summarise, load_lock, settle, StopResults, SavedResults
 
 
 def start(day='15Aug26',finish=1,size=8,margin='0.00'):
@@ -173,6 +175,35 @@ class RulesTests(unittest.TestCase):
         summary,_,issues=summarise(payload,outcomes)
         self.assertEqual(summary['selected_settled'],0);self.assertEqual(summary['selected_unresolved'],1)
 
+    def test_selected_scratch_void_no_substitute_or_outlay(self):
+        rows=score_races([race()],self.c)
+        payload={'version':'V2-R1-experimental','config_hash':digest(self.c),'runners':rows}
+        outcomes={race()['id']:[{'number':1,'name':'ALPHA','finish':None,'sp':None,'status':'scratched'},
+                               {'number':2,'name':'BETA','finish':1,'sp':4.0,'status':'finished'}]}
+        summary,joined,issues=summarise(payload,outcomes)
+        self.assertEqual(summary['selected_void'],1);self.assertEqual(summary['staked'],0)
+        self.assertEqual(summary['gross_return'],0);self.assertEqual(summary['selected_unresolved'],0)
+        self.assertTrue(joined[0]['selected']);self.assertEqual(joined[0]['stake'],10)
+        self.assertEqual(joined[0]['settled_stake'],0);self.assertFalse(joined[1]['selected'])
+        self.assertEqual(issues,[])
+
+    def test_confirmed_opponent_scratch_and_nonwinning_tie(self):
+        rows=score_races([race()],self.c)
+        # Keep the original selected runner and add a third ranked opponent.
+        third=copy.deepcopy(rows[1]);third['number']=3;third['name']='GAMMA';third['rank']=3
+        payload={'version':'V2-R1-experimental','config_hash':digest(self.c),'runners':rows+[third]}
+        outcomes={race()['id']:[{'number':1,'name':'ALPHA','finish':1,'sp':3.2,'status':'finished'},
+                               {'number':2,'name':'BETA','finish':None,'sp':None,'status':'scratched'},
+                               {'number':3,'name':'GAMMA','finish':2,'sp':4.0,'status':'finished'}]}
+        summary,joined,issues=summarise(payload,outcomes)
+        self.assertEqual(summary['paper_profit_loss'],22);self.assertEqual(issues,[])
+        outcomes[race()['id']][1]={'number':2,'name':'BETA','finish':2,'sp':4.0,'status':'finished'}
+        summary,_,issues=summarise(payload,outcomes)
+        self.assertEqual(summary['paper_profit_loss'],22);self.assertEqual(issues,[])
+        outcomes[race()['id']][1]['finish']=1
+        summary,_,issues=summarise(payload,outcomes)
+        self.assertEqual(summary['selected_settled'],0);self.assertEqual(len(issues),1)
+
     def test_block_stops_no_retry_and_keeps_partial(self):
         with tempfile.TemporaryDirectory(dir=Path(__file__).parent) as folder:
             root=Path(folder);guides=root/'input';guides.mkdir();(guides/'WA_20260830_Test.html').write_text(guide_html(),encoding='utf-8')
@@ -188,6 +219,22 @@ class RulesTests(unittest.TestCase):
             self.assertIn("'=FORMULA()",path.read_text(encoding='utf-8-sig'))
             with path.open(encoding='utf-8-sig',newline='') as f:row=next(csv.DictReader(f))
             self.assertEqual(row['sp'],'');self.assertEqual(row['stake'],'0')
+
+    def test_saved_archive_never_falls_back_to_network(self):
+        with tempfile.TemporaryDirectory(dir=Path(__file__).parent) as folder:
+            p=Path(folder)/'saved.zip';url='https://racingaustralia.horse/FreeFields/Results.aspx?Key=2026Aug30%2CWA%2CTest'
+            body=results_html()
+            with zipfile.ZipFile(p,'w') as z:
+                z.writestr('sources.json',json.dumps([{'url':url,'retrieved_utc':'2026-10-01T00:00:00+00:00','body_sha256':hashlib.sha256(body.encode()).hexdigest()}]))
+                z.writestr('official-pages/WA_2026-08-30_Test.html',body)
+            reader=SavedResults(p)
+            try:
+                with patch('urllib.request.OpenerDirector.open',side_effect=AssertionError('No requests')):
+                    self.assertEqual(reader.get(url),body)
+                    with self.assertRaises(StopResults):reader.get(url+'missing')
+                    reader.sources[url]['body_sha256']='wrong'
+                    with self.assertRaises(StopResults):reader.get(url)
+            finally:reader.close()
 
 
 if __name__=='__main__':unittest.main()

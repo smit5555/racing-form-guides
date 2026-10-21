@@ -2,12 +2,14 @@
 import argparse
 import datetime as dt
 import json
+import hashlib
 import math
 from pathlib import Path
 import re
 import time
 import urllib.error
-from urllib.parse import quote
+from urllib.parse import quote, urlsplit, parse_qs
+import zipfile
 from urllib.request import Request, HTTPRedirectHandler, build_opener
 
 from .core import digest
@@ -36,6 +38,26 @@ class Client:
             raise StopResults('CAPTCHA/block detected: no retries or further meetings')
         if '<html' not in body.lower():raise StopResults('Unexpected non-HTML response')
         return body
+
+
+class SavedResults:
+    """Read and verify an earlier artifact, with no network fallback."""
+    def __init__(self,path):
+        self.archive=zipfile.ZipFile(path)
+        self.sources={r['url']:r for r in json.loads(self.archive.read('sources.json'))}
+
+    def get(self,url):
+        if url not in self.sources:raise StopResults('No verified saved page for this URL; no network fallback')
+        stamp,state,venue=parse_qs(urlsplit(url).query)['Key'][0].split(',',2)
+        date=dt.datetime.strptime(stamp,'%Y%b%d').date().isoformat()
+        name=f'official-pages/{state}_{date}_{venue.replace("/","_")}.html'
+        try:body=self.archive.read(name).decode('utf-8-sig')
+        except KeyError:raise StopResults('Saved result page missing; no network fallback') from None
+        if hashlib.sha256(body.encode('utf-8')).hexdigest()!=self.sources[url]['body_sha256']:
+            raise StopResults('Saved result page hash does not match its original source record')
+        return body
+
+    def close(self):self.archive.close()
 
 
 def load_lock(folder):
@@ -127,25 +149,40 @@ def summarise(payload,outcomes):
         starters=[r for r in results if r['status'] in ('finished','dnf')]
         expected={(r['number'],r['name']) for r in field}
         actual={(r['number'],r['name']) for r in starters}
+        scratches={(r['number'],r['name']) for r in results if r['status']=='scratched'}
+        confirmed_withdrawals=expected & scratches
+        # A confirmed scratch is not an identity mismatch. Every locked active
+        # runner must be an exact matched starter or an explicit matched scratch;
+        # no unpredicted starter, fuzzy name match or missing runner is allowed.
+        field_matches=(expected-confirmed_withdrawals)==actual
         reason=''
         if not results:reason='No verified result available'
         elif len({r['number'] for r in results})!=len(results):reason='Duplicate result runners'
         elif any(r['status']=='unresolved_finish' for r in results):reason='Unsupported finish notation/dead heat; race withheld for review'
-        elif expected!=actual:reason='Active field changed or runner identity mismatch; race withheld'
+        elif not field_matches:reason='Unexplained active-field change or runner identity mismatch; race withheld'
         elif sum(r['finish']==1 for r in starters)!=1:reason='No unique winner; race withheld'
         elif any(r['finish'] is not None and not 1<=r['finish']<=len(starters) for r in starters):reason='Finish outside field size; race withheld'
-        elif len([r['finish'] for r in starters if r['finish'] is not None])!=len({r['finish'] for r in starters if r['finish'] is not None}):reason='Tied/duplicate finish positions; race withheld'
+        # A tied non-winning position does not affect a win-only return. A tied
+        # winning position still fails the unique-winner check above.
         if reason:issues.append({'race_id':race_id,'reason':reason})
-        indexed={(r['number'],r['name']):r for r in starters}
+        indexed={(r['number'],r['name']):r for r in results}
         for runner in field:
             row=dict(runner);row.update({'settlement_status':'unresolved' if reason else 'settled','settlement_note':reason,
-                'win':'','finish':'','sp':'','paper_pl':'','market_favourite':False})
+                'win':'','finish':'','sp':'','paper_pl':'','settled_stake':0,'market_favourite':False,
+                'field_changed_by_confirmed_scratches':bool(confirmed_withdrawals),
+                'confirmed_withdrawals':sorted([{'number':n,'name':name} for n,name in confirmed_withdrawals],key=lambda r:r['number'])})
             if not reason:
                 result=indexed[(runner['number'],runner['name'])]
-                row.update(result);row['win']=int(row['finish']==1)
-                row['paper_pl']=row['stake']*(row['sp']*row['win']-1) if row['selected'] else ''
-                # Descriptive benchmark only, AFTER predictions. Tie favourites split one $10 stake.
-                row['market_favourite']=row['sp']==min(r['sp'] for r in starters)
+                row.update(result)
+                if result['status']=='scratched':
+                    row.update({'settlement_status':'void','settlement_note':'Explicitly confirmed scratch: original selection retained, zero outlay/return',
+                                'win':'','finish':'','sp':'','paper_pl':0 if row['selected'] else ''})
+                else:
+                    row['win']=int(row['finish']==1)
+                    row['settled_stake']=row['stake'] if row['selected'] else 0
+                    row['paper_pl']=row['settled_stake']*(row['sp']*row['win']-1) if row['selected'] else ''
+                    # Descriptive benchmark flag only; never an assessment input.
+                    row['market_favourite']=row['sp']==min(r['sp'] for r in starters)
             rows.append(row)
     settled=[r for r in rows if r['selected'] and r['settlement_status']=='settled']
     staked=sum(r['stake'] for r in settled);ret=sum(r['stake']*r['sp']*r['win'] for r in settled)
@@ -153,6 +190,9 @@ def summarise(payload,outcomes):
     summary={'version':payload['version'],'prediction_hash':digest(payload),'rules_hash':payload['config_hash'],
         'selected_total':sum(r['selected'] for r in payload['runners']),'selected_settled':len(settled),
         'selected_unresolved':sum(r['selected'] and r['settlement_status']=='unresolved' for r in rows),
+        'selected_void':sum(r['selected'] and r['settlement_status']=='void' for r in rows),
+        'void_original_potential_stake':sum(r['stake'] for r in rows if r['selected'] and r['settlement_status']=='void'),
+        'settlement_policy':'v1.1: exact confirmed scratches may reduce field; void scratched selections without substitution; non-winning ties accepted; winning dead heats withheld',
         'wins':sum(r['win'] for r in settled),'staked':staked,'gross_return':round(ret,2),
         'paper_profit_loss':round(ret-staked,2),'roi':(ret-staked)/staked if staked else None,
         'win_rate':sum(r['win'] for r in settled)/len(settled) if settled else None,
@@ -183,7 +223,11 @@ def settle(folder,output,client=None):
             path.write_text(body,encoding='utf-8')
             parsed=result_page(body,identity)
             source={'date':date,'state':state,'meeting':venue,'url':url,'retrieved_utc':now(),
-                    'body_sha256':__import__('hashlib').sha256(body.encode('utf-8')).hexdigest()}
+                    'body_sha256':hashlib.sha256(body.encode('utf-8')).hexdigest()}
+            if isinstance(client,SavedResults):
+                source['retrieved_utc']=client.sources[url]['retrieved_utc']
+                source['replayed_utc']=now()
+                source['replayed_from_saved_archive']=True
             requests.append(source)
             for race,entries in parsed.items():
                 outcomes[f'{date}|{state}|{venue}|{race}']=[r|{'source_url':url,'retrieved_utc':source['retrieved_utc']} for r in entries]
@@ -191,7 +235,9 @@ def settle(folder,output,client=None):
     except (StopResults,OSError,ValueError) as exc:error=str(exc)
     summary,rows,issues=summarise(payload,outcomes)
     summary.update({'status':'stopped' if error else 'processed_with_unresolved' if issues else 'processed',
-                    'stopped_reason':error,'official_meetings_fetched':len(requests),'created_utc':now()})
+                    'stopped_reason':error,'official_meetings_fetched':len(requests),'created_utc':now(),
+                    'result_retrieval_mode':'saved_archive_no_network' if isinstance(client,SavedResults) else 'live_requests',
+                    'results_parser_sha256':hashlib.sha256(Path(__file__).read_bytes()).hexdigest()})
     save(out/'summary.json',summary);save(out/'unresolved.json',issues);save(out/'sources.json',requests)
     warnings=[{'race_id':race_id,'number':r['number'],'name':r['name'],
                'finish_label':r['finish_label'],'reported_starting_price':r['reported_starting_price']}
@@ -219,11 +265,16 @@ def settle(folder,output,client=None):
 
 def main():
     p=argparse.ArgumentParser(description=__doc__);p.add_argument('--locked-folder',required=True);p.add_argument('--output',required=True)
+    p.add_argument('--saved-results-zip',help='Optional existing results artifact: offline replay, no requests or fallback')
     a=p.parse_args()
+    reader=None
     try:
-        result=settle(a.locked_folder,a.output)
+        reader=SavedResults(a.saved_results_zip) if a.saved_results_zip else None
+        result=settle(a.locked_folder,a.output,reader)
         if result['status']=='stopped':p.exit(1,result['stopped_reason']+'\n')
     except (ValueError,OSError) as exc:p.exit(1,str(exc)+'\n')
+    finally:
+        if reader is not None:reader.close()
 
 
 if __name__=='__main__':main()
