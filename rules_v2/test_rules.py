@@ -1,4 +1,5 @@
 import copy
+import csv
 import datetime as dt
 import json
 from pathlib import Path
@@ -153,8 +154,10 @@ class RulesTests(unittest.TestCase):
 
     def test_csv_formula_text(self):
         with tempfile.TemporaryDirectory(dir=Path(__file__).parent) as folder:
-            path=Path(folder)/'out.csv';csv_file(path,[{'name':'=FORMULA()'}],['name'])
+            path=Path(folder)/'out.csv';csv_file(path,[{'name':'=FORMULA()','sp':'','stake':0}],['name','sp','stake'])
             self.assertIn("'=FORMULA()",path.read_text(encoding='utf-8-sig'))
+            with path.open(encoding='utf-8-sig',newline='') as f:row=next(csv.DictReader(f))
+            self.assertEqual(row['sp'],'');self.assertEqual(row['stake'],'0')
 
 
 if __name__=='__main__':unittest.main()

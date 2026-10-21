@@ -28,7 +28,7 @@ def csv_file(path,rows,fields):
             for k in fields:
                 v=row.get(k,'')
                 if isinstance(v,(list,dict)):v=json.dumps(v,ensure_ascii=False)
-                if isinstance(v,str) and v[:1] in '=+-@':v="'"+v
+                if isinstance(v,str) and v and v[:1] in '=+-@':v="'"+v
                 data[k]=v
             writer.writerow(data)
 
