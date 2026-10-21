@@ -1,0 +1,112 @@
+name: V2 complete date range - guides, assessment and results
+on:
+  workflow_dispatch:
+    inputs:
+      start_date:
+        description: First date YYYY-MM-DD (recorded historical calendar required)
+        required: true
+        type: string
+      end_date:
+        description: Last date YYYY-MM-DD (inclusive, maximum 31 days)
+        required: true
+        type: string
+      states:
+        description: States (leave the default for all five)
+        default: QLD,NSW,VIC,SA,WA
+        required: true
+        type: string
+permissions:
+  contents: read
+# Shares the existing downloader lock, preventing another form download workflow
+# from starting alongside this complete run. Do not start separate result jobs.
+concurrency:
+  group: racing-form-downloads
+  cancel-in-progress: false
+jobs:
+  download:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 180
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Validate inputs and installed rules before any site request
+        env:
+          START_DATE: ${{ inputs.start_date }}
+          END_DATE: ${{ inputs.end_date }}
+          STATES: ${{ inputs.states }}
+        run: python pipeline_preflight.py --start-date "$START_DATE" --end-date "$END_DATE" --states "$STATES"
+      - name: Check pipeline and V2 behaviour offline
+        run: python -m unittest test_pipeline rules_v2.test_rules -q
+      - name: Download guides sequentially with existing safeguards
+        env:
+          START_DATE: ${{ inputs.start_date }}
+          END_DATE: ${{ inputs.end_date }}
+          STATES: ${{ inputs.states }}
+        run: python download_month.py --start-date "$START_DATE" --end-date "$END_DATE" --states "$STATES"
+      - name: Preserve guides and logs even if downloads stop
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: monthly-form-guides-${{ github.run_id }}
+          path: outputs/
+          retention-days: 90
+          if-no-files-found: warn
+  assess:
+    needs: download
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Load guides from this run automatically
+        uses: actions/download-artifact@v5
+        with:
+          name: monthly-form-guides-${{ github.run_id }}
+          path: ${{ runner.temp }}/complete-v2-guides
+      - name: Apply unchanged V2 rules and lock predictions
+        env:
+          GUIDE_RUN_ID: ${{ github.run_id }}
+          START_DATE: ${{ inputs.start_date }}
+          END_DATE: ${{ inputs.end_date }}
+          GUIDE_FOLDER: ${{ runner.temp }}/complete-v2-guides
+        run: python -m rules_v2.run --guides "$GUIDE_FOLDER" --start-date "$START_DATE" --end-date "$END_DATE" --exposed-races rules_v2/exposed-races.csv --output systematic-v2-predictions
+      - name: Publish prediction lock before results are allowed to start
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: systematic-v2-predictions-${{ github.run_id }}
+          path: systematic-v2-predictions/
+          retention-days: 90
+          if-no-files-found: warn
+  results:
+    needs: assess
+    runs-on: ubuntu-24.04
+    timeout-minutes: 120
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Read this run's published predictions
+        uses: actions/download-artifact@v5
+        with:
+          name: systematic-v2-predictions-${{ github.run_id }}
+          path: ${{ runner.temp }}/complete-v2-lock
+      - name: Verify lock, retrieve official results and calculate paper returns
+        env:
+          LOCK_FOLDER: ${{ runner.temp }}/complete-v2-lock
+        run: |
+          python -c "import time; time.sleep(20)"
+          python -m rules_v2.results --locked-folder "$LOCK_FOLDER" --output systematic-v2-results
+      - name: Preserve results and any unresolved cases
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: systematic-v2-results-${{ github.run_id }}
+          path: systematic-v2-results/
+          retention-days: 90
+          if-no-files-found: warn
