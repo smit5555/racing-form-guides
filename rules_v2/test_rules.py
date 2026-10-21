@@ -141,6 +141,28 @@ class RulesTests(unittest.TestCase):
         self.assertEqual(rows[2]['number'],13);self.assertEqual(rows[2]['status'],'nonstarter_or_unresolved')
         with self.assertRaises(StopResults):result_page(body.replace('<td>1e</td>','<td>1x</td>'),race())
 
+    def test_explicit_scratched_sb_row_is_not_a_starter(self):
+        row='<tr class="EvenRow Scratched"><td>SB</td><td>13e</td><td>RESERVE</td><td>$13</td></tr>'
+        body=results_html().replace('</table></html>',row+'</table></html>')
+        parsed=result_page(body,race())[1]
+        self.assertEqual(parsed[2]['status'],'scratched')
+        self.assertIsNone(parsed[2]['sp']);self.assertIsNone(parsed[2]['finish'])
+        self.assertEqual(parsed[2]['finish_label'],'SB')
+        self.assertEqual(parsed[2]['reported_starting_price'],'$13')
+        payload={'version':'V2-R1-experimental','config_hash':digest(self.c),'runners':score_races([race()],self.c)}
+        summary,_,issues=summarise(payload,{race()['id']:parsed})
+        self.assertEqual(summary['selected_settled'],1);self.assertEqual(issues,[])
+
+    def test_unrecognised_finish_only_withholds_affected_race(self):
+        parsed=result_page(results_html().replace('<td>1</td><td>1</td>','<td>1DH</td><td>1</td>'),race())[1]
+        self.assertEqual(parsed[0]['status'],'unresolved_finish');self.assertIsNone(parsed[0]['sp'])
+        other=race();other['race']=2;other['id']=other['id'].rsplit('|',1)[0]+'|2'
+        payload={'version':'V2-R1-experimental','config_hash':digest(self.c),'runners':score_races([race(),other],self.c)}
+        outcomes={race()['id']:parsed,other['id']:result_page(results_html(),race())[1]}
+        summary,_,issues=summarise(payload,outcomes)
+        self.assertEqual(summary['selected_settled'],1);self.assertEqual(summary['selected_unresolved'],1)
+        self.assertEqual(len(issues),1)
+
     def test_settlement_and_full_field_validation(self):
         rows=score_races([race()],self.c)
         payload={'version':'V2-R1-experimental','config_hash':digest(self.c),'runners':rows}

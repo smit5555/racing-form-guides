@@ -86,7 +86,12 @@ def result_page(body,identity):
             row=dict(zip(headers,cells));num=re.fullmatch(r'(\d+)(e)?',row['no'],re.I)
             if not num:raise StopResults('Unsupported result runner number')
             finish=row['finish'].strip();sp=row['starting price'].replace(' ','')
-            if finish.isdigit():
+            # Explicit source status takes precedence over displayed odds or an
+            # administrative finish code (e.g. SB on a Scratched row).
+            scratched='scratched' in tr.attrs.get('class','').lower().split()
+            if scratched:
+                entry={'number':int(num[1]),'name':row['horse'],'finish':None,'sp':None,'status':'scratched'}
+            elif finish.isdigit():
                 price=re.fullmatch(r'\$(\d+(?:\.\d+)?)(?:[eE]?[fF])?',sp)
                 if not price:raise StopResults('Unrecognised Starting Price; no dividend substitution')
                 value=float(price[1])
@@ -100,8 +105,13 @@ def result_page(body,identity):
                 entry={'number':int(num[1]),'name':row['horse'],'finish':None,'sp':value,'status':'dnf'}
             elif not finish and not sp:
                 entry={'number':int(num[1]),'name':row['horse'],'finish':None,'sp':None,'status':'nonstarter_or_unresolved'}
-            else:raise StopResults('Unsupported finish/dead heat: inspect official results')
+            else:
+                # Keep the raw notation for review, without guessing a position,
+                # return or dead-heat adjustment. Only this race is withheld.
+                entry={'number':int(num[1]),'name':row['horse'],'finish':None,'sp':None,'status':'unresolved_finish'}
             entry['number_label']=row['no']
+            entry['finish_label']=finish
+            entry['reported_starting_price']=row['starting price']
             entries.append(entry)
         output[race]=entries
     if not output:raise StopResults('No recognised official result tables')
@@ -120,6 +130,7 @@ def summarise(payload,outcomes):
         reason=''
         if not results:reason='No verified result available'
         elif len({r['number'] for r in results})!=len(results):reason='Duplicate result runners'
+        elif any(r['status']=='unresolved_finish' for r in results):reason='Unsupported finish notation/dead heat; race withheld for review'
         elif expected!=actual:reason='Active field changed or runner identity mismatch; race withheld'
         elif sum(r['finish']==1 for r in starters)!=1:reason='No unique winner; race withheld'
         elif any(r['finish'] is not None and not 1<=r['finish']<=len(starters) for r in starters):reason='Finish outside field size; race withheld'
@@ -182,6 +193,10 @@ def settle(folder,output,client=None):
     summary.update({'status':'stopped' if error else 'processed_with_unresolved' if issues else 'processed',
                     'stopped_reason':error,'official_meetings_fetched':len(requests),'created_utc':now()})
     save(out/'summary.json',summary);save(out/'unresolved.json',issues);save(out/'sources.json',requests)
+    warnings=[{'race_id':race_id,'number':r['number'],'name':r['name'],
+               'finish_label':r['finish_label'],'reported_starting_price':r['reported_starting_price']}
+              for race_id,entries in outcomes.items() for r in entries if r['status']=='unresolved_finish']
+    save(out/'result-warnings.json',warnings)
     # Retain excluded runner features too, but never attach unverified outcomes to them.
     excluded=[r|{'settlement_status':'excluded_race','win':'','finish':'','sp':'','paper_pl':''} for r in payload['runners'] if not r['race_eligible']]
     all_rows=rows+excluded
