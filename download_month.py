@@ -52,6 +52,14 @@ def process_range(start, end, states, run=subprocess.run, sleep=time.sleep, outp
                 code = 1
                 print('MONTH STOPPED: inspect the failed day. No retries or further days.', flush=True)
                 break
+            if entry['saved'] == 0 and entry['unavailable'] > 0:
+                report['status'] = 'stopped'
+                report['stop_reason'] = ('No guides saved for a day with unavailable/unresolved candidates. '
+                                         'Check one known meeting before requesting further days.')
+                code = 2
+                print('RANGE STOPPED: this day saved zero guides and returned unavailable/unresolved candidates. '
+                      'No retries or further days; inspect the manifest.', flush=True)
+                break
             if entry['status'] in ('incomplete','limited') or completed.returncode == 2:
                 code = 2
             save_report(root, report)
@@ -71,6 +79,8 @@ def save_report(root, report):
              f'Guides saved: {sum(d["saved"] for d in report["days"])}',
              'Coverage is relative to the supplied recorded calendar.',
              'Unconfirmed calendar statuses are listed; a saved guide does not prove a meeting went ahead.', '']
+    if report.get('stop_reason'):
+        lines += ['Reason: '+report['stop_reason'], '']
     for day in report['days']:
         lines.append(f'{day["folder"]}: {day["status"]}; {day["saved"]} guides; {day["unavailable"]} unavailable/unresolved; {day["calendar_status_unconfirmed"]} calendar statuses unconfirmed')
     (root / 'month-summary.txt').write_text('\n'.join(lines)+'\n', encoding='utf-8')
