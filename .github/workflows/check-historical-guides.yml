@@ -1,0 +1,41 @@
+name: Check May and June guide availability
+on:
+  workflow_dispatch:
+    inputs:
+      month:
+        description: Small sample check only; no bulk downloads
+        type: choice
+        options:
+          - both
+          - June
+          - May
+        default: both
+        required: true
+permissions:
+  contents: read
+concurrency:
+  group: racing-form-downloads
+  cancel-in-progress: false
+jobs:
+  check:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Verify bounded requests and identity/block stopping offline
+        run: python -m unittest test_historical_check -q
+      - name: Check sample meetings and their source-advertised form links
+        env:
+          MONTH: ${{ inputs.month }}
+        run: python check_historical_guides.py --month "$MONTH" --output historical-guide-check
+      - name: Preserve diagnostic evidence even if access stops
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: historical-guide-check-${{ github.run_id }}
+          path: historical-guide-check/
+          retention-days: 90
+          if-no-files-found: warn
