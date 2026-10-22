@@ -1,7 +1,12 @@
-name: Check May and June guide availability
+name: Check saved May and June All Form links
 on:
   workflow_dispatch:
     inputs:
+      diagnostic_run_id:
+        description: Earlier source-link diagnostic run (reused without repeating its requests)
+        default: '39699746336'
+        required: true
+        type: string
       month:
         description: Small sample check only; no bulk downloads
         type: choice
@@ -13,6 +18,7 @@ on:
         required: true
 permissions:
   contents: read
+  actions: read
 concurrency:
   group: racing-form-downloads
   cancel-in-progress: false
@@ -27,15 +33,23 @@ jobs:
           python-version: '3.12'
       - name: Verify bounded requests and identity/block stopping offline
         run: python -m unittest test_historical_check -q
-      - name: Check sample meetings and their source-advertised form links
+      - name: Reuse the saved source pages from the earlier diagnostic
+        uses: actions/download-artifact@v5
+        with:
+          run-id: ${{ inputs.diagnostic_run_id }}
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          name: historical-guide-check-${{ inputs.diagnostic_run_id }}
+          path: ${{ runner.temp }}/saved-historical-check
+      - name: Request only the distinct All Form links advertised in those saved pages
         env:
           MONTH: ${{ inputs.month }}
-        run: python check_historical_guides.py --month "$MONTH" --output historical-guide-check
+          SAVED: ${{ runner.temp }}/saved-historical-check
+        run: python check_historical_guides.py --month "$MONTH" --saved-check-folder "$SAVED" --output historical-all-form-check
       - name: Preserve diagnostic evidence even if access stops
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: historical-guide-check-${{ github.run_id }}
-          path: historical-guide-check/
+          name: historical-all-form-check-${{ github.run_id }}
+          path: historical-all-form-check/
           retention-days: 90
           if-no-files-found: warn
