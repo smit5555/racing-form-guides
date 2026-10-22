@@ -11,6 +11,23 @@ from rules_v2.test_rules import race, guide_html
 from .compare import compare
 
 class V3Tests(unittest.TestCase):
+    def test_only_verified_unavailable_meeting_is_recoverable(self):
+        from rules_v2.test_rules import results_html
+        from rules_v2.results import StopResults
+        from .result_recovery import parse_result
+        identity={'date':'2026-08-30','state':'WA','meeting':'Test'}
+        good=results_html()
+        entries, unavailable=parse_result(good,identity)
+        self.assertTrue(entries)
+        self.assertFalse(unavailable)
+        import re
+        missing=re.sub(r'<table.*?</table>', '', good, flags=re.S)
+        missing=missing.replace('</html>','Results for this meeting are not currently available</html>')
+        self.assertEqual(parse_result(missing,identity),({},True))
+        with self.assertRaises(StopResults):parse_result(missing,dict(identity,meeting='Wrong'))
+        with self.assertRaises(StopResults):parse_result(missing+' CAPTCHA',identity)
+        with self.assertRaises(StopResults):parse_result(missing.replace('Results for this meeting are not currently available','Unknown error'),identity)
+
     def test_single_rule_change(self):
         a=config_at();b=config_at(Path(__file__).with_name('config.json'))
         self.assertEqual({k for k in a if a[k]!=b[k]}, {'version','minimum_known_weight'})

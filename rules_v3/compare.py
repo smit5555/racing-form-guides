@@ -4,9 +4,10 @@ import json
 from pathlib import Path
 import shutil
 from rules_v2.results import load_lock, settle, SavedResults
+from .result_recovery import parse_result, ResumeResults
 
 
-def compare(locked_folder, output):
+def compare(locked_folder, output, resume_zip=None):
     root=Path(locked_folder)
     a,b=load_lock(root/'v2'),load_lock(root/'v3')
     expected=dict(a['config'],version=b['version'],minimum_known_weight=100)
@@ -18,12 +19,17 @@ def compare(locked_folder, output):
     if [[r[k] for k in fields] for r in a['runners']] != [[r[k] for k in fields] for r in b['runners']]:
         raise ValueError('Scoring or runner identities differ')
     out=Path(output);out.mkdir(parents=True,exist_ok=False)
-    first=settle(root/'v2',out/'v2')
+    meetings={(r['date'],r['state'],r['meeting']):r for r in a['races'] if not r['exclusions']}
+    reader=ResumeResults(resume_zip,meetings) if resume_zip else None
+    parser=lambda body,identity:parse_result(body,identity)[0]
+    try:first=settle(root/'v2',out/'v2',reader,parser=parser)
+    finally:
+        if reader is not None:reader.close()
     if first['status']=='stopped':
         raise ValueError('Official retrieval stopped; V3 not started. See v2/summary.json')
     archive=shutil.make_archive(str(out/'shared-official-results'),'zip',out/'v2')
     reader=SavedResults(archive)
-    try: second=settle(root/'v3',out/'v3',reader)
+    try: second=settle(root/'v3',out/'v3',reader,parser=parser)
     finally: reader.close()
     if second['status']=='stopped':raise ValueError('Offline V3 settlement stopped: '+str(second['stopped_reason']))
     (out/'comparison.json').write_text(json.dumps({'v2':first,'v3':second},indent=2))
@@ -41,8 +47,9 @@ def compare(locked_folder, output):
 def main():
     p=argparse.ArgumentParser(description=__doc__)
     p.add_argument('--locked-folder',required=True);p.add_argument('--output',required=True)
+    p.add_argument('--resume-results-zip',help='Verified previous V2 partial-results snapshot')
     a=p.parse_args()
-    try:compare(a.locked_folder,a.output)
+    try:compare(a.locked_folder,a.output,a.resume_results_zip)
     except (ValueError,OSError) as exc:p.exit(1,str(exc)+'\n')
 
 if __name__=='__main__':main()

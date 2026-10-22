@@ -210,7 +210,7 @@ def summarise(payload,outcomes):
     return summary,rows,issues
 
 
-def settle(folder,output,client=None):
+def settle(folder,output,client=None,parser=None):
     payload=load_lock(folder)  # This must happen before creating a network client or fetching results.
     out=Path(output);out.mkdir(parents=True,exist_ok=False);(out/'official-pages').mkdir()
     client=client or Client();meetings={};outcomes={};requests=[];error=None
@@ -223,7 +223,7 @@ def settle(folder,output,client=None):
             body=client.get(url)
             path=out/'official-pages'/f'{state}_{date}_{venue.replace("/","_")}.html'
             path.write_text(body,encoding='utf-8',newline='')
-            parsed=result_page(body,identity)
+            parsed=(parser or result_page)(body,identity)
             source={'date':date,'state':state,'meeting':venue,'url':url,'retrieved_utc':now(),
                     'body_sha256':hashlib.sha256(body.encode('utf-8')).hexdigest()}
             if isinstance(client,SavedResults):
@@ -238,7 +238,7 @@ def settle(folder,output,client=None):
     summary,rows,issues=summarise(payload,outcomes)
     summary.update({'status':'stopped' if error else 'processed_with_unresolved' if issues else 'processed',
                     'stopped_reason':error,'official_meetings_fetched':len(requests),'created_utc':now(),
-                    'result_retrieval_mode':'saved_archive_no_network' if isinstance(client,SavedResults) else 'live_requests',
+                    'result_retrieval_mode':'resume_saved_then_missing_only' if getattr(client,'resuming',False) else 'saved_archive_no_network' if isinstance(client,SavedResults) else 'live_requests',
                     'results_parser_sha256':hashlib.sha256(Path(__file__).read_bytes()).hexdigest()})
     save(out/'summary.json',summary);save(out/'unresolved.json',issues);save(out/'sources.json',requests)
     warnings=[{'race_id':race_id,'number':r['number'],'name':r['name'],
