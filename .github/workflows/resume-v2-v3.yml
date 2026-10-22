@@ -1,0 +1,61 @@
+name: Resume V2 and V3 results (keep saved predictions)
+on:
+  workflow_dispatch:
+    inputs:
+      assessment_run_id:
+        description: Original stopped assessment run number (predictions and partial results)
+        default: '39702961837'
+        required: true
+        type: string
+permissions:
+  contents: read
+  actions: read
+concurrency:
+  group: racing-form-downloads
+  cancel-in-progress: false
+jobs:
+  resume_results:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 120
+    env:
+      OPENBLAS_NUM_THREADS: '1'
+      OMP_NUM_THREADS: '1'
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Verify unavailable-page handling and resume safeguards offline
+        run: python -m unittest rules_v2.test_rules rules_v3.test_rules -q
+      - name: Load original published predictions without rescoring
+        uses: actions/download-artifact@v5
+        with:
+          run-id: ${{ inputs.assessment_run_id }}
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          name: v2-v3-predictions-${{ inputs.assessment_run_id }}
+          path: ${{ runner.temp }}/original-probability-predictions
+      - name: Load preserved partial results and pages
+        uses: actions/download-artifact@v5
+        with:
+          run-id: ${{ inputs.assessment_run_id }}
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          name: v2-v3-results-${{ inputs.assessment_run_id }}
+          path: ${{ runner.temp }}/partial-probability-results
+      - name: Package the saved snapshot for verified reuse
+        env:
+          SNAPSHOT_BASE: ${{ runner.temp }}/previous-results-snapshot
+          SAVED_RESULTS: ${{ runner.temp }}/partial-probability-results/v2
+        run: python -c "import os, shutil; shutil.make_archive(os.environ['SNAPSHOT_BASE'], 'zip', os.environ['SAVED_RESULTS'])"
+      - name: Reuse saved pages and request only the remaining meetings
+        env:
+          LOCK: ${{ runner.temp }}/original-probability-predictions
+          SNAPSHOT: ${{ runner.temp }}/previous-results-snapshot.zip
+        run: python -m rules_v3.compare --locked-folder "$LOCK" --resume-results-zip "$SNAPSHOT" --output resumed-comparison-results
+      - name: Preserve resumed results and unresolved cases
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: v2-v3-resumed-results-${{ github.run_id }}
+          path: resumed-comparison-results/
+          retention-days: 90
+          if-no-files-found: warn
