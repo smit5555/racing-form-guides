@@ -226,7 +226,7 @@ def settle(folder,output,client=None,parser=None):
             parsed=(parser or result_page)(body,identity)
             source={'date':date,'state':state,'meeting':venue,'url':url,'retrieved_utc':now(),
                     'body_sha256':hashlib.sha256(body.encode('utf-8')).hexdigest()}
-            if isinstance(client,SavedResults):
+            if isinstance(client,SavedResults) and url in client.sources:
                 source['retrieved_utc']=client.sources[url]['retrieved_utc']
                 source['replayed_utc']=now()
                 source['replayed_from_saved_archive']=True

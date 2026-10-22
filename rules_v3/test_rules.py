@@ -57,3 +57,26 @@ class V3Tests(unittest.TestCase):
             self.assertEqual(request.call_count,1)
             self.assertTrue((root/'results/comparison.md').is_file())
             with self.assertRaises(FileExistsError):compare(root/'locks',root/'results')
+
+    def test_resume_can_fetch_new_page_absent_from_cache(self):
+        import zipfile
+        from rules_v2.test_rules import results_html
+        from rules_v2.results import Client
+        with tempfile.TemporaryDirectory() as d:
+            root=Path(d);g=root/'guides';g.mkdir()
+            (g/'WA_20260830_Test.html').write_text(guide_html())
+            for model,c in [('v2',None),('v3',Path(__file__).with_name('config.json'))]:
+                assess(g,dt.date(2026,8,30),dt.date(2026,8,30),root/'locks'/model,c)
+            archive=root/'partial.zip'
+            with zipfile.ZipFile(archive,'w') as z:
+                z.writestr('sources.json','[]')
+                z.writestr('summary.json','{"status":"stopped","stopped_reason":"No recognised official result tables"}')
+            with patch.object(Client,'get',return_value=results_html()) as request:
+                compare(root/'locks',root/'resumed',resume_zip=archive)
+            self.assertEqual(request.call_count,1)
+            import json
+            a=json.loads((root/'resumed/v2/summary.json').read_text())
+            b=json.loads((root/'resumed/v3/summary.json').read_text())
+            self.assertNotEqual(a['status'],'stopped')
+            self.assertEqual(a['gross_return'],b['gross_return'])
+            self.assertEqual(a['result_retrieval_mode'],'resume_saved_then_missing_only')
