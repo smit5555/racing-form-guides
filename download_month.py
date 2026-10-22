@@ -21,7 +21,7 @@ def process_range(start, end, states, run=subprocess.run, sleep=time.sleep, outp
         raise ValueError('End date must be on or after start date.')
     dates = [start + dt.timedelta(days=n) for n in range((end-start).days+1)]
     if any(lookup(day, states) is None for day in dates):
-        raise ValueError('Every requested date needs recorded calendar coverage (currently 2026-05-01 through 2026-09-30).')
+        raise ValueError('Every requested date needs recorded calendar coverage (currently 2026-04-01 through 2026-09-30).')
     label = f'{MONTH_NAMES[start.month-1]} {start.year}' if (start.year,start.month)==(end.year,end.month) else f'{start.isoformat()} to {end.isoformat()}'
     root = (Path(output_root) / label).resolve()
     root.mkdir(parents=True, exist_ok=True)
