@@ -14,7 +14,7 @@ from rules_v2.test_rules import guide_html,results_html
 from .core import fit,canonical,digest
 from .test_model import toy
 from .assess import run,load_model,load_predictions,apply_model
-from .settle import run as settle,parse_result
+from .settle import run as settle,parse_result,abandoned_race_numbers
 
 
 class AssessmentTests(unittest.TestCase):
@@ -104,6 +104,13 @@ class AssessmentTests(unittest.TestCase):
         zero=page.replace('Meeting Abandoned.','Total Number of starters for this meeting (including emergencies) 0 Meeting Abandoned.')
         with self.assertRaises(StopResults):parse_result(zero,dict(identity,meeting='Wrong'))
         with self.assertRaisesRegex(StopResults,'CAPTCHA'):parse_result(zero+' CAPTCHA',identity)
+
+    def test_partial_meeting_abandonment_is_race_specific(self):
+        page=results_html()+'<table class="race-title"><tr><td>Race 2 - Cancelled race</td></tr></table><div class="Large Scratched">Race Abandoned.</div>'
+        entries,_=parse_result(page,{'date':'2026-08-30','state':'WA','meeting':'Test'})
+        self.assertEqual(abandoned_race_numbers(page,entries),{2})
+        with self.assertRaises(StopResults):abandoned_race_numbers(page,{2:[]})
+        self.assertEqual(abandoned_race_numbers(results_html()+'<p>Race Abandoned.</p>',{1:[]}),set())
 
     def test_explicit_unavailable_is_unknown_not_whole_run_error(self):
         self.assess();client=Mock();client.get.return_value=self.unavailable_page()

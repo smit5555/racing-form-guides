@@ -24,6 +24,19 @@ def abandoned_notice(body):
     return (bool(re.search(r'Total Number of starters for this meeting \(including emergencies\)\s*0\b',text,re.I))
             and bool(re.search(r'\bMeeting Abandoned\.',text,re.I)))
 
+def abandoned_race_numbers(body,parsed):
+    """Read explicit per-race markers only after parse_result verifies identity."""
+    current=None;abandoned=set()
+    for node in Tree(body).root.walk():
+        if node.tag=='table' and node.has('race-title'):
+            match=re.match(r'Race\s+(\d+)\b',node.text())
+            current=int(match[1]) if match else None
+        elif node.tag=='div' and node.has('Scratched') and node.text().strip()=='Race Abandoned.':
+            if current is None:raise StopResults('Abandonment marker without race identity')
+            if current in parsed:raise StopResults('Race has both results and abandonment marker')
+            abandoned.add(current)
+    return abandoned
+
 
 def parse_result(body,identity):
     """Only a verified matching meeting's explicit unavailable notice is recoverable."""
@@ -113,7 +126,7 @@ def metrics(payload,rows):
 def run(folder,output,client=None,resume_zip=None):
     payload=load_predictions(folder)  # Validate before constructing any network client.
     out=Path(output);out.mkdir(parents=True,exist_ok=False);(out/'official-pages').mkdir()
-    outcomes={};sources=[];error=None;unavailable=[];abandoned=[];cached_count=0;fresh_count=0
+    outcomes={};sources=[];error=None;unavailable=[];abandoned=[];abandoned_races=[];cached_count=0;fresh_count=0
     meetings={(r['date'],r['state'],r['meeting']):r for r in payload['races'] if not r['exclusions']}
     if resume_zip is not None and client is not None:raise ValueError('Choose a client or resume archive')
     client=client or (ResumeResults(resume_zip,meetings) if resume_zip is not None else Client())
@@ -135,6 +148,10 @@ def run(folder,output,client=None,resume_zip=None):
             # Preserve provenance even if parsing this page stops the run.
             sources.append(source)
             entries,is_unavailable=parse_result(body,identity)
+            for race_number in sorted(abandoned_race_numbers(body,entries)):
+                abandoned_races.append(dict(date=date,state=state,meeting=venue,race=race_number,
+                    race_id=f'{date}|{state}|{venue}|{race_number}',url=url,
+                    reason='Explicit Race Abandoned marker under verified race heading'))
             if is_unavailable and abandoned_notice(body):
                 source['source_status']='explicit_abandoned'
                 abandoned.append(dict(date=date,state=state,meeting=venue,url=url,
@@ -154,18 +171,20 @@ def run(folder,output,client=None,resume_zip=None):
     _,rows,issues=summarise(payload,outcomes)
     void_ids={r['id'] for r in payload['races'] if any(
         (r['date'],r['state'],r['meeting'])==(m['date'],m['state'],m['meeting']) for m in abandoned)}
+    void_ids.update(r['race_id'] for r in abandoned_races)
     issues=[issue for issue in issues if issue['race_id'] not in void_ids]
     for row in rows:
         if row['id'] in void_ids:
-            row.update(settlement_status='void',settlement_note='Official whole meeting abandoned; zero starters',
+            row.update(settlement_status='void',settlement_note='Official meeting or individual race explicitly abandoned',
                        win='',finish='',sp='',paper_pl=0 if row['selected'] else '',settled_stake=0)
     summary=metrics(payload,rows)
     summary.update(status='stopped' if error else 'processed_with_unresolved' if issues else 'processed',stopped_reason=error,
         official_meetings_fetched=len(sources),cached_meetings_reused=cached_count,new_meetings_requested=fresh_count,
         meetings_explicitly_unavailable=len(unavailable),
         meetings_explicitly_abandoned=len(abandoned),
+        races_explicitly_abandoned=len(abandoned_races),
         result_mode='resume_saved_then_missing_only' if resume_zip is not None else 'saved_archive_no_network' if isinstance(client,SavedResults) else 'live_requests',created_utc=now())
-    for name,value in (('summary.json',summary),('unresolved.json',issues),('sources.json',sources),('unavailable-meetings.json',unavailable),('abandoned-meetings.json',abandoned)):(out/name).write_bytes(canonical(value))
+    for name,value in (('summary.json',summary),('unresolved.json',issues),('sources.json',sources),('unavailable-meetings.json',unavailable),('abandoned-meetings.json',abandoned),('abandoned-races.json',abandoned_races)):(out/name).write_bytes(canonical(value))
     if rows:
         fields=list(dict.fromkeys(k for row in rows for k in row))
         csv_file(out/'research-data.csv',rows,fields)
