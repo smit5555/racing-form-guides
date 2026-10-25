@@ -86,6 +86,25 @@ class AssessmentTests(unittest.TestCase):
     def unavailable_page(self):
         return results_html().split('<table')[0]+'<p>Results for this meeting are not currently available.</p></html>'
 
+    def test_abandoned_whole_meeting_is_void_not_loss(self):
+        self.assess();client=Mock()
+        client.get.return_value=results_html().split('<table')[0]+'<p>Total Number of starters for this meeting (including emergencies) 0</p><p>Meeting Abandoned.</p></html>'
+        s=settle(self.p/'predictions/probability-lock',self.p/'results',client)
+        self.assertEqual(s['status'],'processed')
+        self.assertEqual(s['top_picks_void'],1)
+        self.assertEqual(s['top_picks_unresolved'],0)
+        self.assertEqual(s['top_picks_settled'],0)
+        self.assertEqual(s['meetings_explicitly_abandoned'],1)
+        self.assertEqual(s['meetings_explicitly_unavailable'],0)
+
+    def test_abandonment_notice_without_zero_starters_cannot_skip(self):
+        identity={'date':'2026-08-30','state':'WA','meeting':'Test'}
+        page=results_html().split('<table')[0]+'<p>Meeting Abandoned.</p></html>'
+        with self.assertRaises(StopResults):parse_result(page,identity)
+        zero=page.replace('Meeting Abandoned.','Total Number of starters for this meeting (including emergencies) 0 Meeting Abandoned.')
+        with self.assertRaises(StopResults):parse_result(zero,dict(identity,meeting='Wrong'))
+        with self.assertRaisesRegex(StopResults,'CAPTCHA'):parse_result(zero+' CAPTCHA',identity)
+
     def test_explicit_unavailable_is_unknown_not_whole_run_error(self):
         self.assess();client=Mock();client.get.return_value=self.unavailable_page()
         s=settle(self.p/'predictions/probability-lock',self.p/'results',client)
