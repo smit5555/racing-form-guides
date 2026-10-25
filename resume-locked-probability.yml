@@ -1,0 +1,67 @@
+name: Resume locked probability evaluation
+on:
+  workflow_dispatch:
+    inputs:
+      assessment_run_id:
+        description: Original stopped assessment run number (predictions and partial results)
+        default: '39695527019'
+        required: true
+        type: string
+      results_run_id:
+        description: Failed results-only run number containing the partial result artifact
+        default: '40243183003'
+        required: true
+        type: string
+permissions:
+  contents: read
+  actions: read
+concurrency:
+  group: racing-form-downloads
+  cancel-in-progress: false
+jobs:
+  resume_results:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 120
+    env:
+      OPENBLAS_NUM_THREADS: '1'
+      OMP_NUM_THREADS: '1'
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - run: python -m pip install -r race_model/requirements.txt
+      - name: Verify unavailable-page handling and resume safeguards offline
+        run: python -m unittest race_model.test_model race_model.test_assessment -q
+      - name: Load original published predictions without rescoring
+        uses: actions/download-artifact@v5
+        with:
+          run-id: ${{ inputs.assessment_run_id }}
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          name: race-probability-predictions-${{ inputs.assessment_run_id }}
+          path: ${{ runner.temp }}/original-probability-predictions
+      - name: Load preserved partial results and pages
+        uses: actions/download-artifact@v5
+        with:
+          run-id: ${{ inputs.results_run_id }}
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          name: race-probability-locked-results-${{ inputs.results_run_id }}
+          path: ${{ runner.temp }}/partial-probability-results
+      - name: Package the saved snapshot for verified reuse
+        env:
+          SNAPSHOT_BASE: ${{ runner.temp }}/previous-results-snapshot
+          SAVED_RESULTS: ${{ runner.temp }}/partial-probability-results
+        run: python -c "import os, shutil; shutil.make_archive(os.environ['SNAPSHOT_BASE'], 'zip', os.environ['SAVED_RESULTS'])"
+      - name: Reuse saved pages and request only the remaining meetings
+        env:
+          LOCK: ${{ runner.temp }}/original-probability-predictions/probability-lock
+          SNAPSHOT: ${{ runner.temp }}/previous-results-snapshot.zip
+        run: python -m race_model.settle --locked-folder "$LOCK" --resume-results-zip "$SNAPSHOT" --output resumed-probability-results
+      - name: Preserve resumed results and unresolved cases
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: race-probability-locked-resumed-results-${{ github.run_id }}
+          path: resumed-probability-results/
+          retention-days: 90
+          if-no-files-found: warn
