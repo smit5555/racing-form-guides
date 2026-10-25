@@ -1,0 +1,48 @@
+name: Evaluate already locked probability predictions
+on:
+  workflow_dispatch:
+    inputs:
+      assessment_run_id:
+        description: Completed pre-race probability assessment run number (not guide or training run)
+        required: true
+        type: string
+permissions:
+  contents: read
+  actions: read
+concurrency:
+  group: racing-form-downloads
+  cancel-in-progress: false
+jobs:
+  results:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 120
+    env:
+      OPENBLAS_NUM_THREADS: '1'
+      OMP_NUM_THREADS: '1'
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - run: python -m pip install -r race_model/requirements.txt
+      - name: Check lock verification and results handling offline
+        run: python -m unittest race_model.test_model race_model.test_assessment -q
+      - name: Read the original published predictions without assessment or retraining
+        uses: actions/download-artifact@v5
+        with:
+          run-id: ${{ inputs.assessment_run_id }}
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          name: race-probability-predictions-${{ inputs.assessment_run_id }}
+          path: ${{ runner.temp }}/published-probability-predictions
+      - name: Verify original lock and retrieve official results sequentially
+        env:
+          LOCK: ${{ runner.temp }}/published-probability-predictions/probability-lock
+        run: python -m race_model.settle --locked-folder "$LOCK" --output locked-probability-results
+      - name: Preserve results and unresolved cases even after a stop
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: race-probability-locked-results-${{ github.run_id }}
+          path: locked-probability-results/
+          retention-days: 90
+          if-no-files-found: warn
