@@ -1,0 +1,48 @@
+import importlib.util
+import json
+from pathlib import Path
+import unittest
+
+ROOT = Path(__file__).resolve().parents[1]
+spec = importlib.util.spec_from_file_location("collector", ROOT / "tools/collect_august_results.py")
+c = importlib.util.module_from_spec(spec)
+spec.loader.exec_module(c)
+
+
+class CollectionTests(unittest.TestCase):
+    def test_manifest(self):
+        data = json.loads((ROOT / "inputs/august_2026_meetings.json").read_text())
+        self.assertEqual(len(data), 171)
+        self.assertEqual(sum(len(m["races"]) for m in data), 1328)
+        self.assertEqual(len({m["source_file"] for m in data}), 171)
+        self.assertEqual([sum(a <= int(m["date"][-2:]) <= b for m in data) for a, b in c.BATCHES.values()], [55, 53, 63])
+        for m in data:
+            self.assertTrue(m["date"].startswith("2026-08-"))
+            self.assertEqual(m["races"], list(range(1, len(m["races"]) + 1)))
+
+    def test_source_identity(self):
+        self.assertEqual(c.race_number("https://www.racing.com/form/2026-08-01/rosehill-gardens/race/2", "2026-08-01"), 2)
+        for url in ["https://evil.example/form/2026-08-01/a/race/2", "https://www.racing.com/form/2026-08-02/a/race/2", "https://www.racing.com/form/2026-08-01/a/race/2?x=1"]:
+            with self.assertRaises(ValueError):
+                c.race_number(url, "2026-08-01")
+
+    def test_matching_is_conservative(self):
+        self.assertEqual(c.norm("bet365 Park Kilmore"), c.norm("Park Kilmore"))
+        self.assertNotEqual(c.norm("Port Macquarie"), c.norm("Port Augusta"))
+
+    def test_challenge_detection(self):
+        for text in ["Access denied", "Mimecast", "Verify you are human", "Request blocked"]:
+            self.assertIsNotNone(c.BLOCK.search(text))
+        self.assertIsNone(c.BLOCK.search("Final Result Horse Barrier SP"))
+
+    def test_rendered_identity(self):
+        meeting = dict(meeting="Gilgandra", date="2026-08-01", state="NSW")
+        title = "Form | Results | Gilgandra | Race 1 | Saturday | 1 August 2026 | NSW | Racing.com"
+        c.validate_title(title, meeting, 1)
+        for bad in [title.replace("Race 1", "Race 2"), title.replace("1 August", "2 August"), title.replace("Gilgandra", "Dubbo"), title.replace("NSW", "QLD")]:
+            with self.assertRaises(ValueError):
+                c.validate_title(bad, meeting, 1)
+
+
+if __name__ == "__main__":
+    unittest.main()

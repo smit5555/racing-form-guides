@@ -1,0 +1,2869 @@
+[
+  {
+    "source_file": "NSW_20260801_Gilgandra.html",
+    "state": "NSW",
+    "date": "2026-08-01",
+    "meeting": "Gilgandra",
+    "guide_sha256": "4f58547d498645130401b595276af39f6df7a8179301ef6d8bdf50ce66006e12",
+    "races": [
+      1,
+      2,
+      3,
+      4,
+      5,
+      6
+    ]
+  },
+  {
+    "source_file": "NSW_20260801_Newcastle.html",
+    "state": "NSW",
+    "date": "2026-08-01",
+    "meeting": "Newcastle",
+    "guide_sha256": "6e36a2ecee1416f720c36d923fc2331ce60efebfc5bdc604dd66bc1cd1f1ca6f",
+    "races": [
+      1,
+      2,
+      3,
+      4,
+      5,
+      6,
+      7,
+      8
+    ]
+  },
+  {
+    "source_file": "NSW_20260801_Rosehill_Gardens.html",
+    "state": "NSW",
+    "date": "2026-08-01",
+    "meeting": "Rosehill Gardens",
+    "guide_sha256": "5bc9cc0b50aba193bcfe118f4c920f71ac70d143276ada8e865a1de31d60ac55",
+    "races": [
+      1,
+      2,
+      3,
+      4,
+      5,
+      6,
+      7,
+      8,
+      9,
+      10
+    ]
+  },
+  {
+    "source_file": "QLD_20260801_Aquis_Park_Gold_Coast.html",
+    "state": "QLD",
+    "date": "2026-08-01",
+    "meeting": "Aquis Park Gold Coast",
+    "guide_sha256": "a7b1c6debcba8dc8083fd7f7a44633ebd9c5c2b83615294ad95a41eb3170a28e",
+    "races": [
+      1,
+      2,
+      3,
+      4,
+      5,
+      6,
+      7,
+      8
+    ]
+  },
+  {
+    "source_file": "QLD_20260801_Doomben.html",
+    "state": "QLD",
+    "date": "2026-08-01",
+    "meeting": "Doomben",
+    "guide_sha256": "66423b31d3eb0042503a7e1e52f1be7e1dc41915e4838c2af32917eec61bf9be",
+    "races": [
+      1,
+      2,
+      3,
+      4,
+      5,
+      6,
+      7,
+      8,
+      9
+    ]
+  },
+  {
+    "source_file": "QLD_20260801_Toowoomba.html",
+    "state": "QLD",
+    "date": "2026-08-01",
+    "meeting": "Toowoomba",
+    "guide_sha256": "3995bfeb47f84375871d21dcec91bb38cad2a36d9724bfec4dddbb7959875110",
+    "races": [
+      1,
+      2,
+      3,
+      4,
+      5,
+      6,
+      7
+    ]
+  },
+  {
+    "source_file": "QLD_20260801_Townsville.html",
+    "state": "QLD",
+    "date": "2026-08-01",
+    "meeting": "Townsville",
+    "guide_sha256": "53f160f6e986a7cbd202d2c8ffdc2d9e9248f1af7a55785303da0d9bf9fd1515",
+    "races": [
+      1,
+      2,
+      3,
+      4,
+      5,
+      6,
+      7,
+      8,
+      9
+    ]
+  },
+  {
+    "source_file": "SA_20260801_Morphettville_Parks.html",
+    "state": "SA",
+    "date": "2026-08-01",
+    "meeting": "Morphettville Parks",
+    "guide_sha256": "78a37fbc400b8023ceeb34f0ab079cdca6c347439e95212b0826f6228c840c0f",
+    "races": [
+      1,
+      2,
+      3,
+      4,
+      5,
+      6,
+      7,
+      8,
+      9
+    ]
+  },
+  {
+    "source_file": "VIC_20260801_Flemington.html",
+    "state": "VIC",
+    "date": "2026-08-01",
+    "meeting": "Flemington",
+    "guide_sha256": "75964e3d2dac72a7218b7671eed9731894e7858838febf070a73206a9e85565f",
+    "races": [
+      1,
+      2,
+      3,
+      4,
+      5,
+      6,
+      7,
+      8,
+      9
+    ]
+  },
+  {
+    "source_file": "VIC_20260801_bet365_Hamilton.html",
+    "state": "VIC",
+    "date": "2026-08-01",
+    "meeting": "bet365 Hamilton",
+    "guide_sha256": "15199a5cef8ae05b70f312511f1f49a04a87b0f392e26a7dfcd58ddb7240c029",
+    "races": [
+      1,
+      2,
+      3,
+      4,
+      5,
+      6,
+      7
+    ]
+  },
+  {
+    "source_file": "WA_20260801_Belmont.html",
+    "state": "WA",
+    "date": "2026-08-01",
+    "meeting": "Belmont",
+    "guide_sha256": "c53ed0f31a58cfa157d7fdfc92368d285874c2773e409e9fbf2a2a5dca8877c5",
+    "races": [
+      1,
+      2,
+      3,
+      4,
+      5,
+      6,
+      7,
+      8
+    ]
+  },
+  {
+    "source_file": "WA_20260801_Broome.html",
+    "state": "WA",
+    "date": "2026-08-01",
+    "meeting": "Broome",
+    "guide_sha256": "a916080b64cc0637589837345f3335dc743c96d9a8194093e903aa367b29ffe0",
+    "races": [
+      1,
+      2,
+      3,
+      4,
+      5,
+      6,
+      7
+    ]
+  },
+  {
+    "source_file": "NSW_20260802_Forbes.html",
+    "state": "NSW",
+    "date": "2026-08-02",
+    "meeting": "Forbes",
+    "guide_sha256": "0443c06b21528d5d9d163e67165f94fd5967ca50b5d629639f42344fd7723061",
+    "races": [
+      1,
+      2,
+      3,
+      4,
+      5,
+      6,
+      7,
+      8
+    ]
+  },
+  {
+    "source_file": "NSW_20260802_Wyong.html",
+    "state": "NSW",
+    "date": "2026-08-02",
+    "meeting": "Wyong",
+    "guide_sha256": "84909565ce200f25ae92aa44c65c459dc2a37df9a4f9018e29f8f281d94a8df0",
+    "races": [
+      1,
+      2,
+      3,
+      4,
+      5,
+      6,
+      7,
+      8
+    ]
+  },
+  {
+    "source_file": "QLD_20260802_Sunshine_Coast.html",
+    "state": "QLD",
+    "date": "2026-08-02",
+    "meeting": "Sunshine Coast",
+    "guide_sha256": "a1c009625f80a22889b4cdfb782e9d30c596800af39d6d0c96032496a741a5b4",
+    "races": [
+      1,
+      2,
+      3,
+      4,
+      5,
+      6,
+      7,
+      8
+    ]
+  },
+  {
+    "source_file": "VIC_20260802_Sportsbet_Sandown_Lakeside.html",
+    "state": "VIC",
+    "date": "2026-08-02",
+    "meeting": "Sportsbet Sandown Lakeside",
+    "guide_sha256": "d9a1829576591f52ae7ac68386ff68172dfe236d4bf9ba306b2e2290852f90eb",
+    "races": [
+      1,
+      2,
+      3,
+      4,
+      5,
+      6,
+      7,
+      8
+    ]
+  },
+  {
+    "source_file": "WA_20260802_Port_Hedland.html",
+    "state": "WA",
+    "date": "2026-08-02",
+    "meeting": "Port Hedland",
+    "guide_sha256": "380626cd178fc4ceaba7f02d0c0e68aec9b0e3b68d09fb14ba580f078dffdfe6",
+    "races": [
+      1,
+      2,
+      3,
+      4,
+      5,
+      6,
+      7
+    ]
+  },
+  {
+    "source_file": "NSW_20260803_Goulburn.html",
+    "state": "NSW",
+    "date": "2026-08-03",
+    "meeting": "Goulburn",
+    "guide_sha256": "0a22a255b5d32e976ee7627b3268d9d84e205abb6d2263b80207efd6f404160b",
+    "races": [
+      1,
+      2,
+      3,
+      4,
+      5,
+      6,
+      7
+    ]
+  },
+  {
+    "source_file": "VIC_20260803_Southside_Pakenham_Synthetic.html",
+    "state": "VIC",
+    "date": "2026-08-03",
+    "meeting": "Southside Pakenham Synthetic",
+    "guide_sha256": "c88586991f527f56d6547f6c73dc7f80fc0e7692cb3671b87dde0438cbcbb2ff",
+    "races": [
+      1,
+      2,
+      3,
+      4,
+      5,
+      6,
+      7,
+      8
+    ]
+  },
+  {
+    "source_file": "NSW_20260804_Gundagai.html",
+    "state": "NSW",
+    "date": "2026-08-04",
+    "meeting": "Gundagai",
+    "guide_sha256": "6fc1f0b35ae0923c1be90b297d81aff08b205cb73387871aa9ecd367156ce25c",
+    "races": [
+      1,
+      2,
+      3,
+      4,
+      5,
+      6,
+      7
+    ]
+  },
+  {
+    "source_file": "NSW_20260804_Quirindi.html",
+    "state": "NSW",
+    "date": "2026-08-04",
+    "meeting": "Quirindi",
+    "guide_sha256": "a13b12af9238027566fd9265462124c301d0185a6d14b42bf775b1b174ac95da",
+    "races": [
+      1,
+      2,
+      3,
+      4,
+      5,
+      6,
+      7
+    ]
+  },
+  {
+    "source_file": "QLD_20260804_Picklebet_Park_Warwick.html",
+    "state": "QLD",
+    "date": "2026-08-04",
+    "meeting": "Picklebet Park Warwick",
+    "guide_sha256": "5b21a9d7b7b966b6269df4f0b13e62ed0224e71209c90ae9557fa22d24080e29",
+    "races": [
+      1,
+      2,
+      3,
+      4,
+      5,
+      6,
+      7,
+      8,
+      9
+    ]
+  },
+  {
+    "source_file": "VIC_20260804_bet365_Bairnsdale.html",
+    "state": "VIC",
+    "date": "2026-08-04",
+    "meeting": "bet365 Bairnsdale",
+    "guide_sha256": "3f1c733f8ddd988bc32c37f8aa463c68d15ca5dcab4f8dea71f093b5a6f12a83",
+    "races": [
+      1,
+      2,
+      3,
+      4,
+      5,
+      6,
+      7,
+      8
+    ]
+  },
+  {
+    "source_file": "NSW_20260805_Canterbury_Park.html",
+    "state": "NSW",
+    "date": "2026-08-05",
+    "meeting": "Canterbury Park",
+    "guide_sha256": "36527dca177f34ce90cc9a2b81d3e1600aa89edc86d3fc54f17e949fe53784ca",
+    "races": [
+      1,
+      2,
+      3,
+      4,
+      5,
+      6,
+      7
+    ]
+  },
+  {
+    "source_file": "QLD_20260805_Doomben.html",
+    "state": "QLD",
+    "date": "2026-08-05",
+    "meeting": "Doomben",
+    "guide_sha256": "0764aedc9212b5190e7836b9c816aa5e2532b902e545970c003ced53f701c44d",
+    "races": [
+      1,
+      2,
+      3,
+      4,
+      5,
+      6,
+      7,
+      8
+    ]
+  },
+  {
+    "source_file": "SA_20260805_Thomas_Farms_RC_Murray_Bridge.html",
+    "state": "SA",
+    "date": "2026-08-05",
+    "meeting": "Thomas Farms RC Murray Bridge",
+    "guide_sha256": "e3cd7c6057e9477f19c875554c3105113ad8ba2469b96af4d8a4c14f5a1e4031",
+    "races": [
+      1,
+      2,
+      3,
+      4,
+      5,
+      6,
+      7,
+      8
+    ]
+  },
+  {
+    "source_file": "WA_20260805_Belmont.html",
+    "state": "WA",
+    "date": "2026-08-05",
+    "meeting": "Belmont",
+    "guide_sha256": "078eeab0056a8f4ac4082679731d03b06793e6c7c170fbc709c4805292b4e58a",
+    "races": [
+      1,
+      2,
+      3,
+      4,
+      5,
+      6,
+      7,
+      8
+    ]
+  },
+  {
+    "source_file": "NSW_20260806_Gosford.html",
+    "state": "NSW",
+    "date": "2026-08-06",
+    "meeting": "Gosford",
+    "guide_sha256": "393c83bb325d102b60b82087388f870d4257aef955e13e7922f5a28a98ac6ce5",
+    "races": [
+      1,
+      2,
+      3,
+      4,
+      5,
+      6,
+      7,
+      8
+    ]
+  },
+  {
+    "source_file": "NSW_20260806_Moree.html",
+    "state": "NSW",
+    "date": "2026-08-06",
+    "meeting": "Moree",
+    "guide_sha256": "9413efe280c4bd41d96ea8e15fef62df97af17acc43d7cd8f146d86fd1a0ccbb",
+    "races": [
+      1,
+      2,
+      3,
+      4,
+      5,
+      6,
+      7
+    ]
+  },
+  {
+    "source_file": "QLD_20260806_Sportsbet_Mount_Isa.html",
+    "state": "QLD",
+    "date": "2026-08-06",
+    "meeting": "Sportsbet Mount Isa",
+    "guide_sha256": "ea780f9ffd0d5a340397ad8e61b4e6b0e9b291190dfb864cc3dceacdbc432b5e",
+    "races": [
+      1,
+      2,
+      3,
+      4,
+      5,
+      6,
+      7
+    ]
+  },
+  {
+    "source_file": "VIC_20260806_Sportsbet-Ballarat_Synthetic.html",
+    "state": "VIC",
+    "date": "2026-08-06",
+    "meeting": "Sportsbet-Ballarat Synthetic",
+    "guide_sha256": "efe58a6d6456b8ea033a10795746631bf7b461ef559ed7a17ae8513b72ea0650",
+    "races": [
+      1,
+      2,
+      3,
+      4,
+      5,
+      6,
+      7,
+      8
+    ]
+  },
+  {
+    "source_file": "WA_20260806_Northam.html",
+    "state": "WA",
+    "date": "2026-08-06",
+    "meeting": "Northam",
+    "guide_sha256": "f21492937964fdb14fcd4a36d25dacdc5cce8219d8f4ec8dc7bcc10ec0edb4dd",
+    "races": [
+      1,
+      2,
+      3,
+      4,
+      5,
+      6,
+      7,
+      8
+    ]
+  },
+  {
+    "source_file": "NSW_20260807_Coffs_Harbour.html",
+    "state": "NSW",
+    "date": "2026-08-07",
+    "meeting": "Coffs Harbour",
+    "guide_sha256": "1f85497f5fad837b81759604b801db9efb81402b8789bafef1aa976552ecdcc2",
+    "races": [
+      1,
+      2,
+      3,
+      4,
+      5,
+      6,
+      7,
+      8
+    ]
+  },
+  {
+    "source_file": "QLD_20260807_Ipswich.html",
+    "state": "QLD",
+    "date": "2026-08-07",
+    "meeting": "Ipswich",
+    "guide_sha256": "b758e460495682c538ae30ecffd560c4acc675a7057e7010457ab6795c0eff8c",
+    "races": [
+      1,
+      2,
+      3,
+      4,
+      5,
+      6,
+      7
+    ]
+  },
+  {
+    "source_file": "SA_20260807_Mount_Gambier.html",
+    "state": "SA",
+    "date": "2026-08-07",
+    "meeting": "Mount Gambier",
+    "guide_sha256": "2cae7fa1acfc799a02ed25a39e6902c28b27005e547eaac0496dfae4d21a81a6",
+    "races": [
+      1,
+      2,
+      3,
+      4,
+      5,
+      6,
+      7
+    ]
+  },
+  {
+    "source_file": "VIC_20260807_bet365_Seymour.html",
+    "state": "VIC",
+    "date": "2026-08-07",
+    "meeting": "bet365 Seymour",
+    "guide_sha256": "b89e1259a0aeef82bfca8fd31da84e051d7468d1b03d751c149cc62de3e0bc79",
+    "races": [
+      1,
+      2,
+      3,
+      4,
+      5,
+      6,
+      7,
+      8
+    ]
+  },
+  {
+    "source_file": "NSW_20260808_Casino.html",
+    "state": "NSW",
+    "date": "2026-08-08",
+    "meeting": "Casino",
+    "guide_sha256": "8fe3374aa26c8f6864c373a430d14a03183d79587cc3c6893826c06e5bfcfdee",
+    "races": [
+      1,
+      2,
+      3,
+      4,
+      5,
+      6,
+      7,
+      8
+    ]
+  },
+  {
+    "source_file": "NSW_20260808_Kembla_Grange.html",
+    "state": "NSW",
+    "date": "2026-08-08",
+    "meeting": "Kembla Grange",
+    "guide_sha256": "871266f95c065d57b9caf34e275fd924d4319771de20f652b03dba77d4cc34c2",
+    "races": [
+      1,
+      2,
+      3,
+      4,
+      5,
+      6,
+      7,
+      8
+    ]
+  },
+  {
+    "source_file": "NSW_20260808_Royal_Randwick.html",
+    "state": "NSW",
+    "date": "2026-08-08",
+    "meeting": "Royal Randwick",
+    "guide_sha256": "82574006ac94a20a712742b89b869c6f670c8cf8d7881ef726db31f15245b862",
+    "races": [
+      1,
+      2,
+      3,
+      4,
+      5,
+      6,
+      7,
+      8,
+      9,
+      10
+    ]
+  },
+  {
+    "source_file": "QLD_20260808_Eagle_Farm.html",
+    "state": "QLD",
+    "date": "2026-08-08",
+    "meeting": "Eagle Farm",
+    "guide_sha256": "f4314dbc2864e7ac3ac3d1df89a70a52b8eed78703d53cf2c1de21b41f2f70fe",
+    "races": [
+      1,
+      2,
+      3,
+      4,
+      5,
+      6,
+      7,
+      8,
+      9
+    ]
+  },
+  {
+    "source_file": "QLD_20260808_Toowoomba.html",
+    "state": "QLD",
+    "date": "2026-08-08",
+    "meeting": "Toowoomba",
+    "guide_sha256": "c55427c80e58b8c9404464e631368c7bdd2467908055f0784d1d3f41dfb9eeff",
+    "races": [
+      1,
+      2,
+      3,
+      4,
+      5,
+      6,
+      7
+    ]
+  },
+  {
+    "source_file": "QLD_20260808_Townsville.html",
+    "state": "QLD",
+    "date": "2026-08-08",
+    "meeting": "Townsville",
+    "guide_sha256": "59a96ff5eb6d235caf036973c26c61b641f74961495111ad360aae7690e6944b",
+    "races": [
+      1,
+      2,
+      3,
+      4,
+      5,
+      6,
+      7,
+      8
+    ]
+  },
+  {
+    "source_file": "SA_20260808_Morphettville.html",
+    "state": "SA",
+    "date": "2026-08-08",
+    "meeting": "Morphettville",
+    "guide_sha256": "fbbd4b8ec42be49aff9cfc092fa3bd0626866efa960ecc1978cd6efce8156a04",
+    "races": [
+      1,
+      2,
+      3,
+      4,
+      5,
+      6,
+      7,
+      8,
+      9
+    ]
+  },
+  {
+    "source_file": "VIC_20260808_Caulfield_Heath.html",
+    "state": "VIC",
+    "date": "2026-08-08",
+    "meeting": "Caulfield Heath",
+    "guide_sha256": "a46d9400abacc149f40e6038fcf4ebb3f41e70c20cf0d6980fe01774b67a5207",
+    "races": [
+      1,
+      2,
+      3,
+      4,
+      5,
+      6,
+      7,
+      8,
+      9
+    ]
+  },
+  {
+    "source_file": "VIC_20260808_bet365_Mildura.html",
+    "state": "VIC",
+    "date": "2026-08-08",
+    "meeting": "bet365 Mildura",
+    "guide_sha256": "7fb70e06449744287ef54bbaca10453d19f93dea47d92ce08405d61e6a5f797b",
+    "races": [
+      1,
+      2,
+      3,
+      4,
+      5,
+      6,
+      7
+    ]
+  },
+  {
+    "source_file": "WA_20260808_Belmont.html",
+    "state": "WA",
+    "date": "2026-08-08",
+    "meeting": "Belmont",
+    "guide_sha256": "c82e485d7336a575a0ccad1f13ff845039f20caff442d55f6462b7525b5f9561",
+    "races": [
+      1,
+      2,
+      3,
+      4,
+      5,
+      6,
+      7,
+      8
+    ]
+  },
+  {
+    "source_file": "NSW_20260809_Muswellbrook.html",
+    "state": "NSW",
+    "date": "2026-08-09",
+    "meeting": "Muswellbrook",
+    "guide_sha256": "a46f3120ea08e5b0923a391b91449cab5bd0d91f57681badb13343ca431bd0fd",
+    "races": [
+      1,
+      2,
+      3,
+      4,
+      5,
+      6,
+      7
+    ]
+  },
+  {
+    "source_file": "QLD_20260809_Sunshine_Coast.html",
+    "state": "QLD",
+    "date": "2026-08-09",
+    "meeting": "Sunshine Coast",
+    "guide_sha256": "afc6d64cc0dbe17e942efb90544a282519be40a50957b345651f6eae92f73b01",
+    "races": [
+      1,
+      2,
+      3,
+      4,
+      5,
+      6,
+      7,
+      8
+    ]
+  },
+  {
+    "source_file": "VIC_20260809_Casterton.html",
+    "state": "VIC",
+    "date": "2026-08-09",
+    "meeting": "Casterton",
+    "guide_sha256": "de900cccf06469da74ea320eab38adef27f1e8292f0a34b8877aa3c09c782381",
+    "races": [
+      1,
+      2,
+      3,
+      4,
+      5,
+      6,
+      7
+    ]
+  },
+  {
+    "source_file": "VIC_20260809_Sportsbet-Ballarat_Synthetic.html",
+    "state": "VIC",
+    "date": "2026-08-09",
+    "meeting": "Sportsbet-Ballarat Synthetic",
+    "guide_sha256": "616e1591834770d60ec1aa6b3f0ff6412969a675dbc10d9f3afe64adae7f972b",
+    "races": [
+      1,
+      2,
+      3,
+      4,
+      5,
+      6,
+      7,
+      8
+    ]
+  },
+  {
+    "source_file": "WA_20260809_Kalgoorlie.html",
+    "state": "WA",
+    "date": "2026-08-09",
+    "meeting": "Kalgoorlie",
+    "guide_sha256": "8fcb69deeb4efbb21fc280a57d221edea4422620f50738321fb61fc70f38ab49",
+    "races": [
+      1,
+      2,
+      3,
+      4,
+      5,
+      6,
+      7,
+      8
+    ]
+  },
+  {
+    "source_file": "NSW_20260810_Dubbo.html",
+    "state": "NSW",
+    "date": "2026-08-10",
+    "meeting": "Dubbo",
+    "guide_sha256": "abfe78054137245157301a15f7ba4098257d7f56442a279b93dc2a15547602ec",
+    "races": [
+      1,
+      2,
+      3,
+      4,
+      5,
+      6,
+      7
+    ]
+  },
+  {
+    "source_file": "NSW_20260810_Nowra.html",
+    "state": "NSW",
+    "date": "2026-08-10",
+    "meeting": "Nowra",
+    "guide_sha256": "fd5d12cc3b2dcafae39c68755af0388930e334de7ba6c23773a8025414f88032",
+    "races": [
+      1,
+      2,
+      3,
+      4,
+      5,
+      6,
+      7
+    ]
+  },
+  {
+    "source_file": "QLD_20260810_Kilcoy.html",
+    "state": "QLD",
+    "date": "2026-08-10",
+    "meeting": "Kilcoy",
+    "guide_sha256": "bb64610d6fb34a570c27efbf30e3ec59c864454abf600387bdce9126aef86c5e",
+    "races": [
+      1,
+      2,
+      3,
+      4,
+      5,
+      6,
+      7
+    ]
+  },
+  {
+    "source_file": "VIC_20260810_Southside_Pakenham_Synthetic.html",
+    "state": "VIC",
+    "date": "2026-08-10",
+    "meeting": "Southside Pakenham Synthetic",
+    "guide_sha256": "c74445c16aac5de71cc099ebc3a3bd040c6e9e9860d1a07b70b470589ec7679f",
+    "races": [
+      1,
+      2,
+      3,
+      4,
+      5,
+      6,
+      7,
+      8,
+      9
+    ]
+  },
+  {
+    "source_file": "NSW_20260811_Ballina.html",
+    "state": "NSW",
+    "date": "2026-08-11",
+    "meeting": "Ballina",
+    "guide_sha256": "adc92a8dab4d10fbd6ebd9565d028f760c3e6bcf99b0ec158a4346e330f934b2",
+    "races": [
+      1,
+      2,
+      3,
+      4,
+      5,
+      6,
+      7,
+      8
+    ]
+  },
+  {
+    "source_file": "NSW_20260811_Hawkesbury.html",
+    "state": "NSW",
+    "date": "2026-08-11",
+    "meeting": "Hawkesbury",
+    "guide_sha256": "f6c8f7be28eb0abf19229bd5bb1e61480015eac2ce48ef99048f0dd9947f4ac3",
+    "races": [
+      1,
+      2,
+      3,
+      4,
+      5,
+      6,
+      7
+    ]
+  },
+  {
+    "source_file": "QLD_20260811_Dalby.html",
+    "state": "QLD",
+    "date": "2026-08-11",
+    "meeting": "Dalby",
+    "guide_sha256": "0781c9160cdb16520b7fa7cbe4e1528439c04011b509e2b232b0631a8a98c5a3",
+    "races": [
+      1,
+      2,
+      3,
+      4,
+      5,
+      6,
+      7,
+      8
+    ]
+  },
+  {
+    "source_file": "VIC_20260811_Sportsbet-Ballarat_Synthetic.html",
+    "state": "VIC",
+    "date": "2026-08-11",
+    "meeting": "Sportsbet-Ballarat Synthetic",
+    "guide_sha256": "855790a3b9ceefab5ca142fbf863d4d3c420c494d6ca6271839fbd414fc666ec",
+    "races": [
+      1,
+      2,
+      3,
+      4,
+      5,
+      6,
+      7,
+      8,
+      9,
+      10
+    ]
+  },
+  {
+    "source_file": "WA_20260811_Broome.html",
+    "state": "WA",
+    "date": "2026-08-11",
+    "meeting": "Broome",
+    "guide_sha256": "5b0e8eee231096d7dbedef6bd3b4cf38ff5ac7901b824e11f40a177f87516536",
+    "races": [
+      1,
+      2,
+      3,
+      4,
+      5,
+      6
+    ]
+  },
+  {
+    "source_file": "NSW_20260812_Canterbury_Park.html",
+    "state": "NSW",
+    "date": "2026-08-12",
+    "meeting": "Canterbury Park",
+    "guide_sha256": "ce00cfb24745d7f7a0b899b71747911fb09998bce7921f60ac026ced49155023",
+    "races": [
+      1,
+      2,
+      3,
+      4,
+      5,
+      6,
+      7
+    ]
+  },
+  {
+    "source_file": "QLD_20260812_Eagle_Farm.html",
+    "state": "QLD",
+    "date": "2026-08-12",
+    "meeting": "Eagle Farm",
+    "guide_sha256": "96d8be745b8f6b7873d062d2f37e8e2b57fda9bf2462e6d5cb2fd4aa99033d16",
+    "races": [
+      1,
+      2,
+      3,
+      4,
+      5,
+      6,
+      7,
+      8
+    ]
+  },
+  {
+    "source_file": "SA_20260812_Thomas_Farms_RC_Murray_Bridge.html",
+    "state": "SA",
+    "date": "2026-08-12",
+    "meeting": "Thomas Farms RC Murray Bridge",
+    "guide_sha256": "99a2895246666c47bf5bcf6abe2ae3a7e05a3c05b536187d83addbc44703ce35",
+    "races": [
+      1,
+      2,
+      3,
+      4,
+      5,
+      6,
+      7,
+      8
+    ]
+  },
+  {
+    "source_file": "VIC_20260812_Bendigo.html",
+    "state": "VIC",
+    "date": "2026-08-12",
+    "meeting": "Bendigo",
+    "guide_sha256": "09a84837a3823bb41e0b6f4945ab66c3c36f4ded91783b8c418b34542b5fc81d",
+    "races": [
+      1,
+      2,
+      3,
+      4,
+      5,
+      6,
+      7,
+      8
+    ]
+  },
+  {
+    "source_file": "WA_20260812_Pinjarra_Scarpside.html",
+    "state": "WA",
+    "date": "2026-08-12",
+    "meeting": "Pinjarra Scarpside",
+    "guide_sha256": "6d6be5274a5e5e77c30f82e92f77f9d3885184f65f730b5cada31fa2253eefb6",
+    "races": [
+      1,
+      2,
+      3,
+      4,
+      5,
+      6,
+      7,
+      8
+    ]
+  },
+  {
+    "source_file": "NSW_20260813_Newcastle.html",
+    "state": "NSW",
+    "date": "2026-08-13",
+    "meeting": "Newcastle",
+    "guide_sha256": "1be0974e776aaf00e5da86e023df7eb35cdb610606d15354ef47b080c985ade5",
+    "races": [
+      1,
+      2,
+      3,
+      4,
+      5,
+      6,
+      7,
+      8
+    ]
+  },
+  {
+    "source_file": "QLD_20260813_Rockhampton.html",
+    "state": "QLD",
+    "date": "2026-08-13",
+    "meeting": "Rockhampton",
+    "guide_sha256": "a6c2ae9c60e810318dd130e0b0c43b77b12c4ecb77d5448531d44200a51fa3f5",
+    "races": [
+      1,
+      2,
+      3,
+      4,
+      5,
+      6,
+      7
+    ]
+  },
+  {
+    "source_file": "VIC_20260813_Moe.html",
+    "state": "VIC",
+    "date": "2026-08-13",
+    "meeting": "Moe",
+    "guide_sha256": "609361d331c801344d9c29164721afad725dd0f9152d78a2233768bc0ec5ef64",
+    "races": [
+      1,
+      2,
+      3,
+      4,
+      5,
+      6,
+      7,
+      8
+    ]
+  },
+  {
+    "source_file": "WA_20260813_Bunbury.html",
+    "state": "WA",
+    "date": "2026-08-13",
+    "meeting": "Bunbury",
+    "guide_sha256": "df43d3be65a2a288336502de057c8b20c80446f6d0630e008e933eda7a1f7e69",
+    "races": [
+      1,
+      2,
+      3,
+      4,
+      5,
+      6,
+      7,
+      8
+    ]
+  },
+  {
+    "source_file": "NSW_20260814_Gunnedah.html",
+    "state": "NSW",
+    "date": "2026-08-14",
+    "meeting": "Gunnedah",
+    "guide_sha256": "2ffebb1236b93fb32e412eaf66700ce97d6a2fd54d899117622eb0f841078cf4",
+    "races": [
+      1,
+      2,
+      3,
+      4,
+      5,
+      6,
+      7,
+      8
+    ]
+  },
+  {
+    "source_file": "NSW_20260814_Taree.html",
+    "state": "NSW",
+    "date": "2026-08-14",
+    "meeting": "Taree",
+    "guide_sha256": "ecd2cc030be213237286d8ae37c5f691a17f59250b8a13d235095466b7cfcf24",
+    "races": [
+      1,
+      2,
+      3,
+      4,
+      5,
+      6,
+      7,
+      8
+    ]
+  },
+  {
+    "source_file": "QLD_20260814_Ipswich.html",
+    "state": "QLD",
+    "date": "2026-08-14",
+    "meeting": "Ipswich",
+    "guide_sha256": "16c4c30eed7c981356c91e7ed5b3b22b0fbdb2e3df825160d9c949e5d470095f",
+    "races": [
+      1,
+      2,
+      3,
+      4,
+      5,
+      6,
+      7
+    ]
+  },
+  {
+    "source_file": "VIC_20260814_Ladbrokes_Geelong.html",
+    "state": "VIC",
+    "date": "2026-08-14",
+    "meeting": "Ladbrokes Geelong",
+    "guide_sha256": "225bd400fe7788366dc1ecf4926d59016bfba48631f9eaf800e05bb2b5057112",
+    "races": [
+      1,
+      2,
+      3,
+      4,
+      5,
+      6,
+      7,
+      8
+    ]
+  },
+  {
+    "source_file": "NSW_20260815_Kembla_Grange.html",
+    "state": "NSW",
+    "date": "2026-08-15",
+    "meeting": "Kembla Grange",
+    "guide_sha256": "4cab471eabfa30de1d0c49fa512cce17ae456b08c78e084ca31a176b94c4267a",
+    "races": [
+      1,
+      2,
+      3,
+      4,
+      5,
+      6,
+      7,
+      8
+    ]
+  },
+  {
+    "source_file": "NSW_20260815_Narrandera.html",
+    "state": "NSW",
+    "date": "2026-08-15",
+    "meeting": "Narrandera",
+    "guide_sha256": "3ca5d0aafd6c679c2c030d81b044ae5bc7b62539272b94e00a663e5ea8253add",
+    "races": [
+      1,
+      2,
+      3,
+      4,
+      5,
+      6
+    ]
+  },
+  {
+    "source_file": "NSW_20260815_Rosehill_Gardens.html",
+    "state": "NSW",
+    "date": "2026-08-15",
+    "meeting": "Rosehill Gardens",
+    "guide_sha256": "42e7760d5d705590643296e0bce5781f5f3c4fc806642854a6bdb139ce6d2425",
+    "races": [
+      1,
+      2,
+      3,
+      4,
+      5,
+      6,
+      7,
+      8,
+      9,
+      10
+    ]
+  },
+  {
+    "source_file": "QLD_20260815_Aquis_Park_Gold_Coast_Poly.html",
+    "state": "QLD",
+    "date": "2026-08-15",
+    "meeting": "Aquis Park Gold Coast Poly",
+    "guide_sha256": "059426abdc5d1749305f092d3d482ab42655cfb50b7dc7b97c0eb11505a2d3a1",
+    "races": [
+      1,
+      2,
+      3,
+      4,
+      5,
+      6,
+      7
+    ]
+  },
+  {
+    "source_file": "QLD_20260815_Doomben.html",
+    "state": "QLD",
+    "date": "2026-08-15",
+    "meeting": "Doomben",
+    "guide_sha256": "0190694758e775a6d38f6c86596f7a5a8921eed954b708260897734d404e5316",
+    "races": [
+      1,
+      2,
+      3,
+      4,
+      5,
+      6,
+      7,
+      8,
+      9
+    ]
+  },
+  {
+    "source_file": "QLD_20260815_Roma.html",
+    "state": "QLD",
+    "date": "2026-08-15",
+    "meeting": "Roma",
+    "guide_sha256": "96e3683689db464b23f52c9404c3c5d40420c1bf5f4f0fdcd8fcd26727fa01af",
+    "races": [
+      1,
+      2,
+      3,
+      4,
+      5,
+      6
+    ]
+  },
+  {
+    "source_file": "QLD_20260815_Toowoomba.html",
+    "state": "QLD",
+    "date": "2026-08-15",
+    "meeting": "Toowoomba",
+    "guide_sha256": "3e516efa6e0dabff38cb28bb66b469b07893a5039e8456a6fda09e74ccb7a634",
+    "races": [
+      1,
+      2,
+      3,
+      4,
+      5,
+      6,
+      7
+    ]
+  },
+  {
+    "source_file": "SA_20260815_Morphettville_Parks.html",
+    "state": "SA",
+    "date": "2026-08-15",
+    "meeting": "Morphettville Parks",
+    "guide_sha256": "6bc10bf04ac89381e77cace5f29f57eb16479224c13e7bd3539a0c0dc052fca2",
+    "races": [
+      1,
+      2,
+      3,
+      4,
+      5,
+      6,
+      7,
+      8,
+      9
+    ]
+  },
+  {
+    "source_file": "VIC_20260815_BetDeluxe_Warracknabeal.html",
+    "state": "VIC",
+    "date": "2026-08-15",
+    "meeting": "BetDeluxe Warracknabeal",
+    "guide_sha256": "b72ddd13c5d0e69ad45ab4e1ca78dc63f2cf2c38cb307abd1df10b278cb98a4b",
+    "races": [
+      1,
+      2,
+      3,
+      4,
+      5,
+      6,
+      7
+    ]
+  },
+  {
+    "source_file": "VIC_20260815_Caulfield.html",
+    "state": "VIC",
+    "date": "2026-08-15",
+    "meeting": "Caulfield",
+    "guide_sha256": "3e17181f0fec2c95c5dc30ef0e420fbf58a7d63cfbeab1e6ee64990a4022943d",
+    "races": [
+      1,
+      2,
+      3,
+      4,
+      5,
+      6,
+      7,
+      8,
+      9
+    ]
+  },
+  {
+    "source_file": "WA_20260815_Belmont.html",
+    "state": "WA",
+    "date": "2026-08-15",
+    "meeting": "Belmont",
+    "guide_sha256": "bec920cdb3d92b2c573ebdacc494ae6d933c463b8e571990985e01e259cc5573",
+    "races": [
+      1,
+      2,
+      3,
+      4,
+      5,
+      6,
+      7,
+      8
+    ]
+  },
+  {
+    "source_file": "WA_20260815_Broome.html",
+    "state": "WA",
+    "date": "2026-08-15",
+    "meeting": "Broome",
+    "guide_sha256": "798a2a2d1252c2f2824054632bec495f35d27c26e1bac4116fc36b5977f51b53",
+    "races": [
+      1,
+      2,
+      3,
+      4,
+      5,
+      6,
+      7,
+      8
+    ]
+  },
+  {
+    "source_file": "NSW_20260816_Moruya.html",
+    "state": "NSW",
+    "date": "2026-08-16",
+    "meeting": "Moruya",
+    "guide_sha256": "7db1a817cbbfee76f5dff5c919dadb62b08dfa9b4b4baef8816db2903bfccb88",
+    "races": [
+      1,
+      2,
+      3,
+      4,
+      5,
+      6,
+      7,
+      8
+    ]
+  },
+  {
+    "source_file": "NSW_20260816_Wyong.html",
+    "state": "NSW",
+    "date": "2026-08-16",
+    "meeting": "Wyong",
+    "guide_sha256": "4a7d9aa0322f385a83571afb2f76235f2dacd594a616db710d21fd283328844e",
+    "races": [
+      1,
+      2,
+      3,
+      4,
+      5,
+      6,
+      7,
+      8
+    ]
+  },
+  {
+    "source_file": "QLD_20260816_Sunshine_Coast.html",
+    "state": "QLD",
+    "date": "2026-08-16",
+    "meeting": "Sunshine Coast",
+    "guide_sha256": "a58af4f8561fe4d4221ffed544ebc49a96dbd745cfd9f7ebd523802522e302cb",
+    "races": [
+      1,
+      2,
+      3,
+      4,
+      5,
+      6,
+      7,
+      8
+    ]
+  },
+  {
+    "source_file": "VIC_20260816_Southside_Pakenham_Synthetic.html",
+    "state": "VIC",
+    "date": "2026-08-16",
+    "meeting": "Southside Pakenham Synthetic",
+    "guide_sha256": "e3153f797ed00c250f7dd96baeabc9d56c6ef7604a51ee73e7a6a91639dba9e6",
+    "races": [
+      1,
+      2,
+      3,
+      4,
+      5,
+      6,
+      7
+    ]
+  },
+  {
+    "source_file": "VIC_20260816_Sportsbet-Ballarat.html",
+    "state": "VIC",
+    "date": "2026-08-16",
+    "meeting": "Sportsbet-Ballarat",
+    "guide_sha256": "d3e927a39286b6b9a9f6de90128cf5598cebf4fc42d17f0f36660cad5c8cb6e8",
+    "races": [
+      1,
+      2,
+      3,
+      4,
+      5,
+      6
+    ]
+  },
+  {
+    "source_file": "WA_20260816_Carnarvon.html",
+    "state": "WA",
+    "date": "2026-08-16",
+    "meeting": "Carnarvon",
+    "guide_sha256": "298e5a76499f2c6faec84bf46d5ad015c2704f70d58f81de13a40b4ade41a38b",
+    "races": [
+      1,
+      2,
+      3,
+      4,
+      5,
+      6
+    ]
+  },
+  {
+    "source_file": "NSW_20260817_Bathurst.html",
+    "state": "NSW",
+    "date": "2026-08-17",
+    "meeting": "Bathurst",
+    "guide_sha256": "a72fc5714d6db2be115420c1c013901d99485c0ff9a446506804d2010e6577b8",
+    "races": [
+      1,
+      2,
+      3,
+      4,
+      5,
+      6,
+      7
+    ]
+  },
+  {
+    "source_file": "NSW_20260817_Scone.html",
+    "state": "NSW",
+    "date": "2026-08-17",
+    "meeting": "Scone",
+    "guide_sha256": "3b461628bbd4cfa2bc61d4d8f8bde35778fb7c7ed621d1d020bc7216936b723d",
+    "races": [
+      1,
+      2,
+      3,
+      4,
+      5,
+      6,
+      7
+    ]
+  },
+  {
+    "source_file": "QLD_20260817_Emerald.html",
+    "state": "QLD",
+    "date": "2026-08-17",
+    "meeting": "Emerald",
+    "guide_sha256": "e6dca147bf52bd9d8a5c85caa3a6c8a0e5a006b406d011adf1755f1ac3c7d2aa",
+    "races": [
+      1,
+      2,
+      3,
+      4,
+      5,
+      6,
+      7
+    ]
+  },
+  {
+    "source_file": "VIC_20260817_Picklebet_Park_Wodonga.html",
+    "state": "VIC",
+    "date": "2026-08-17",
+    "meeting": "Picklebet Park Wodonga",
+    "guide_sha256": "2729db6368a59abc7ba2e8267016de50428edf94732bdbbf0e954e2e6dce7ab2",
+    "races": [
+      1,
+      2,
+      3,
+      4,
+      5,
+      6,
+      7,
+      8
+    ]
+  },
+  {
+    "source_file": "NSW_20260818_Albury.html",
+    "state": "NSW",
+    "date": "2026-08-18",
+    "meeting": "Albury",
+    "guide_sha256": "e031b38d325c6816dd8748c7ade14b8afd6aa20c7e11f99d72a5b0a14cfad64f",
+    "races": [
+      1,
+      2,
+      3,
+      4,
+      5,
+      6,
+      7
+    ]
+  },
+  {
+    "source_file": "NSW_20260818_Grafton.html",
+    "state": "NSW",
+    "date": "2026-08-18",
+    "meeting": "Grafton",
+    "guide_sha256": "b788d85e247f35634548dee6324f7af69ed832ed102b05763b760967d65c7b09",
+    "races": [
+      1,
+      2,
+      3,
+      4,
+      5,
+      6,
+      7
+    ]
+  },
+  {
+    "source_file": "QLD_20260818_Townsville.html",
+    "state": "QLD",
+    "date": "2026-08-18",
+    "meeting": "Townsville",
+    "guide_sha256": "53c969aeb7196a864f51cee75bd651c59214029b51b57deb87e64eeaba7d34ac",
+    "races": [
+      1,
+      2,
+      3,
+      4,
+      5,
+      6,
+      7
+    ]
+  },
+  {
+    "source_file": "VIC_20260818_Sportsbet-Ballarat_Synthetic.html",
+    "state": "VIC",
+    "date": "2026-08-18",
+    "meeting": "Sportsbet-Ballarat Synthetic",
+    "guide_sha256": "15f8b22589042aeab44ec0ffc409d9a122dff54ce7497356d22c4461ddda92ff",
+    "races": [
+      1,
+      2,
+      3,
+      4,
+      5,
+      6,
+      7
+    ]
+  },
+  {
+    "source_file": "NSW_20260819_Warwick_Farm.html",
+    "state": "NSW",
+    "date": "2026-08-19",
+    "meeting": "Warwick Farm",
+    "guide_sha256": "9359c21d13e7a7e7cee4a842e841b7f832ec61360653919306a146cd63cea70e",
+    "races": [
+      1,
+      2,
+      3,
+      4,
+      5,
+      6,
+      7
+    ]
+  },
+  {
+    "source_file": "QLD_20260819_Ipswich.html",
+    "state": "QLD",
+    "date": "2026-08-19",
+    "meeting": "Ipswich",
+    "guide_sha256": "c39a18ded3620ad8ba57fce52eeceaad3e1a4e21ea1a862694008d1dfa914435",
+    "races": [
+      1,
+      2,
+      3,
+      4,
+      5,
+      6,
+      7
+    ]
+  },
+  {
+    "source_file": "SA_20260819_Strathalbyn.html",
+    "state": "SA",
+    "date": "2026-08-19",
+    "meeting": "Strathalbyn",
+    "guide_sha256": "fb4c6b2b624706b52fac70434cd20d688a98afcff0364109eb2e885bd0a7c890",
+    "races": [
+      1,
+      2,
+      3,
+      4,
+      5,
+      6,
+      7
+    ]
+  },
+  {
+    "source_file": "VIC_20260819_Sportsbet_Sandown_Lakeside.html",
+    "state": "VIC",
+    "date": "2026-08-19",
+    "meeting": "Sportsbet Sandown Lakeside",
+    "guide_sha256": "c9ca31c9ce9890d55b5f4a09fa72a18baad11dfafb2df71d08680d5b18c2e242",
+    "races": [
+      1,
+      2,
+      3,
+      4,
+      5,
+      6,
+      7,
+      8
+    ]
+  },
+  {
+    "source_file": "WA_20260819_Belmont.html",
+    "state": "WA",
+    "date": "2026-08-19",
+    "meeting": "Belmont",
+    "guide_sha256": "2e5b64e14ea59746ac7c271672bc6ab11679b5e1441dc80e6a2211b79cdd6813",
+    "races": [
+      1,
+      2,
+      3,
+      4,
+      5,
+      6,
+      7,
+      8
+    ]
+  },
+  {
+    "source_file": "NSW_20260820_Hawkesbury.html",
+    "state": "NSW",
+    "date": "2026-08-20",
+    "meeting": "Hawkesbury",
+    "guide_sha256": "099e21525fc473eb10eb1b1160529259c53582f769a0f52f5bafc8322e386f1b",
+    "races": [
+      1,
+      2,
+      3,
+      4,
+      5,
+      6,
+      7,
+      8
+    ]
+  },
+  {
+    "source_file": "QLD_20260820_Mackay.html",
+    "state": "QLD",
+    "date": "2026-08-20",
+    "meeting": "Mackay",
+    "guide_sha256": "5583854fc06096a6016c77e9f38d9e4b6e9440f6c3a4a6c0df3d3ee0cdcdfe40",
+    "races": [
+      1,
+      2,
+      3,
+      4,
+      5,
+      6
+    ]
+  },
+  {
+    "source_file": "VIC_20260820_Warrnambool.html",
+    "state": "VIC",
+    "date": "2026-08-20",
+    "meeting": "Warrnambool",
+    "guide_sha256": "fd9c206572507fdcfbd98d55291c706d71640077eddaf237c20451b7610968eb",
+    "races": [
+      1,
+      2,
+      3,
+      4,
+      5,
+      6,
+      7,
+      8
+    ]
+  },
+  {
+    "source_file": "WA_20260820_Pinjarra_Park.html",
+    "state": "WA",
+    "date": "2026-08-20",
+    "meeting": "Pinjarra Park",
+    "guide_sha256": "2ae51407e14bdeb2d9105b0e95e150eb6ffbcd5ae922640002b4304d6de3d31f",
+    "races": [
+      1,
+      2,
+      3,
+      4,
+      5,
+      6,
+      7
+    ]
+  },
+  {
+    "source_file": "NSW_20260821_Murwillumbah.html",
+    "state": "NSW",
+    "date": "2026-08-21",
+    "meeting": "Murwillumbah",
+    "guide_sha256": "e50fa1a7c5897b019a7a75cd9ddcc8ff9192831e3c7d798429f5fc9d88790dde",
+    "races": [
+      1,
+      2,
+      3,
+      4,
+      5,
+      6,
+      7,
+      8
+    ]
+  },
+  {
+    "source_file": "QLD_20260821_Aquis_Beaudesert.html",
+    "state": "QLD",
+    "date": "2026-08-21",
+    "meeting": "Aquis Beaudesert",
+    "guide_sha256": "aa715a3e0ac701ebd2d145f8bfb9c96764bb5ce283ddd3531f38d05c85278fb5",
+    "races": [
+      1,
+      2,
+      3,
+      4,
+      5,
+      6,
+      7,
+      8
+    ]
+  },
+  {
+    "source_file": "VIC_20260821_Murtoa.html",
+    "state": "VIC",
+    "date": "2026-08-21",
+    "meeting": "Murtoa",
+    "guide_sha256": "aeabb9b57e1eeab3b4bcb85a4442e0395f46b5b8de0b6e731f976ed9f93f239e",
+    "races": [
+      1,
+      2,
+      3,
+      4,
+      5,
+      6,
+      7,
+      8
+    ]
+  },
+  {
+    "source_file": "VIC_20260821_Sale.html",
+    "state": "VIC",
+    "date": "2026-08-21",
+    "meeting": "Sale",
+    "guide_sha256": "f931c02f7e7bca0ec73a2c3716e8fdd21d2e1871fd7d3961ea6eec957bc0ea5f",
+    "races": [
+      1,
+      2,
+      3,
+      4,
+      5,
+      6,
+      7,
+      8,
+      9
+    ]
+  },
+  {
+    "source_file": "NSW_20260822_Newcastle.html",
+    "state": "NSW",
+    "date": "2026-08-22",
+    "meeting": "Newcastle",
+    "guide_sha256": "322beb7f8b9a285724c41bfc52216e24db45ec6300da92fc445a3f4b402ad83f",
+    "races": [
+      1,
+      2,
+      3,
+      4,
+      5,
+      6,
+      7,
+      8
+    ]
+  },
+  {
+    "source_file": "NSW_20260822_Port_Macquarie.html",
+    "state": "NSW",
+    "date": "2026-08-22",
+    "meeting": "Port Macquarie",
+    "guide_sha256": "ca50628fa8cff05847b1cc5a393c6c7e48fa29f122a55fb497d3010f3b8b1496",
+    "races": [
+      1,
+      2,
+      3,
+      4,
+      5
+    ]
+  },
+  {
+    "source_file": "NSW_20260822_Royal_Randwick.html",
+    "state": "NSW",
+    "date": "2026-08-22",
+    "meeting": "Royal Randwick",
+    "guide_sha256": "3dac5e77be0b0b3bb9c904064d6ba2d1f0c4c8391ef1af1795053eafb4458d8b",
+    "races": [
+      1,
+      2,
+      3,
+      4,
+      5,
+      6,
+      7,
+      8,
+      9,
+      10
+    ]
+  },
+  {
+    "source_file": "QLD_20260822_Doomben.html",
+    "state": "QLD",
+    "date": "2026-08-22",
+    "meeting": "Doomben",
+    "guide_sha256": "7bbb0782065a34a853397d56c31d6a7c6631eef2c18910a39088c922cd6cfee0",
+    "races": [
+      1,
+      2,
+      3,
+      4,
+      5,
+      6,
+      7,
+      8,
+      9,
+      10
+    ]
+  },
+  {
+    "source_file": "QLD_20260822_Gympie.html",
+    "state": "QLD",
+    "date": "2026-08-22",
+    "meeting": "Gympie",
+    "guide_sha256": "5e383efe265da13a67e0925c325b9bd23718719f33e15b7038b0ae05ddbb89a2",
+    "races": [
+      1,
+      2,
+      3,
+      4,
+      5
+    ]
+  },
+  {
+    "source_file": "QLD_20260822_Ladbrokes_Cannon_Park.html",
+    "state": "QLD",
+    "date": "2026-08-22",
+    "meeting": "Ladbrokes Cannon Park",
+    "guide_sha256": "fd4175ab56422f36982c0d08a188dcb70415393db0057e1f16c93ae23317812c",
+    "races": [
+      1,
+      2,
+      3,
+      4,
+      5,
+      6,
+      7,
+      8
+    ]
+  },
+  {
+    "source_file": "QLD_20260822_Toowoomba.html",
+    "state": "QLD",
+    "date": "2026-08-22",
+    "meeting": "Toowoomba",
+    "guide_sha256": "18e5131eff1d88d25b96be4fe18f10aa98d712c15a28386a9209beefb1cb21ac",
+    "races": [
+      1,
+      2,
+      3,
+      4,
+      5,
+      6,
+      7
+    ]
+  },
+  {
+    "source_file": "SA_20260822_Morphettville_Parks.html",
+    "state": "SA",
+    "date": "2026-08-22",
+    "meeting": "Morphettville Parks",
+    "guide_sha256": "f24df5bf4722f506aff0bee81613a0122178492b41703ba5f847060c55f27060",
+    "races": [
+      1,
+      2,
+      3,
+      4,
+      5,
+      6,
+      7,
+      8,
+      9
+    ]
+  },
+  {
+    "source_file": "VIC_20260822_Sportsbet_Sandown_Hillside.html",
+    "state": "VIC",
+    "date": "2026-08-22",
+    "meeting": "Sportsbet Sandown Hillside",
+    "guide_sha256": "e603fd44143b85761182dbf0b06866adcf12e5ac85fb9490617f3585cb3259b2",
+    "races": [
+      1,
+      2,
+      3,
+      4,
+      5,
+      6,
+      7,
+      8,
+      9
+    ]
+  },
+  {
+    "source_file": "WA_20260822_Belmont.html",
+    "state": "WA",
+    "date": "2026-08-22",
+    "meeting": "Belmont",
+    "guide_sha256": "4d9302d7e1056782e08e8630cc91fc224c24483bc7566c38d84161abd0252167",
+    "races": [
+      1,
+      2,
+      3,
+      4,
+      5,
+      6,
+      7,
+      8
+    ]
+  },
+  {
+    "source_file": "WA_20260822_Kununurra.html",
+    "state": "WA",
+    "date": "2026-08-22",
+    "meeting": "Kununurra",
+    "guide_sha256": "c6506d0e323bb277f4393e3414f5314c2e6dc6605c16c1f7ee8f7df74a5275ed",
+    "races": [
+      1,
+      2,
+      3,
+      4,
+      5,
+      6,
+      7
+    ]
+  },
+  {
+    "source_file": "WA_20260822_Newman.html",
+    "state": "WA",
+    "date": "2026-08-22",
+    "meeting": "Newman",
+    "guide_sha256": "be1304f79d83cb39eac4b0fb3ac9f95bb8656963cfd1460a9bb3d56e77c4fc9c",
+    "races": [
+      1,
+      2,
+      3,
+      4,
+      5,
+      6
+    ]
+  },
+  {
+    "source_file": "NSW_20260823_Goulburn.html",
+    "state": "NSW",
+    "date": "2026-08-23",
+    "meeting": "Goulburn",
+    "guide_sha256": "983afddd5fb05a501107fac2eb1a8deca633726bfe578076f5dcd6007e11b7b4",
+    "races": [
+      1,
+      2,
+      3,
+      4,
+      5,
+      6,
+      7,
+      8
+    ]
+  },
+  {
+    "source_file": "NSW_20260823_Narromine.html",
+    "state": "NSW",
+    "date": "2026-08-23",
+    "meeting": "Narromine",
+    "guide_sha256": "2032f79a22ea9a7f52f3a271a186246bd0ba2b524eda5bf354e9174247baf380",
+    "races": [
+      1,
+      2,
+      3,
+      4,
+      5,
+      6,
+      7,
+      8,
+      9
+    ]
+  },
+  {
+    "source_file": "QLD_20260823_Kilcoy.html",
+    "state": "QLD",
+    "date": "2026-08-23",
+    "meeting": "Kilcoy",
+    "guide_sha256": "04375c072f6cd022d2c3b351a15a2a96647145cfe86b94d12261fff11ff01ec2",
+    "races": [
+      1,
+      2,
+      3,
+      4,
+      5,
+      6,
+      7,
+      8,
+      9
+    ]
+  },
+  {
+    "source_file": "SA_20260823_Port_Augusta.html",
+    "state": "SA",
+    "date": "2026-08-23",
+    "meeting": "Port Augusta",
+    "guide_sha256": "4165ee77c5645c2fb2c8c5b2f74c12e63c850c988cb580085721b8ea15d94e79",
+    "races": [
+      1,
+      2,
+      3,
+      4,
+      5,
+      6,
+      7
+    ]
+  },
+  {
+    "source_file": "VIC_20260823_Sportsbet-Wangaratta.html",
+    "state": "VIC",
+    "date": "2026-08-23",
+    "meeting": "Sportsbet-Wangaratta",
+    "guide_sha256": "77b3c7625b015b5dbe846283e9f56943bba7dd327d3fb92ada64ba6ef6ca58ae",
+    "races": [
+      1,
+      2,
+      3,
+      4,
+      5,
+      6,
+      7,
+      8
+    ]
+  },
+  {
+    "source_file": "WA_20260823_Kalgoorlie.html",
+    "state": "WA",
+    "date": "2026-08-23",
+    "meeting": "Kalgoorlie",
+    "guide_sha256": "14a0f185fc2444acba32e0fdf4ae1e733e4167b552cae7845272f1474ec838f5",
+    "races": [
+      1,
+      2,
+      3,
+      4,
+      5,
+      6,
+      7,
+      8
+    ]
+  },
+  {
+    "source_file": "NSW_20260824_Tuncurry.html",
+    "state": "NSW",
+    "date": "2026-08-24",
+    "meeting": "Tuncurry",
+    "guide_sha256": "47f3d87ba5561edd3532ecc36e20acdfeb544e2e8058a6569d0dbfc4738f450b",
+    "races": [
+      1,
+      2,
+      3,
+      4,
+      5,
+      6,
+      7,
+      8
+    ]
+  },
+  {
+    "source_file": "VIC_20260824_Southside_Pakenham_Synthetic.html",
+    "state": "VIC",
+    "date": "2026-08-24",
+    "meeting": "Southside Pakenham Synthetic",
+    "guide_sha256": "878e3322f06645f298c4542330180b1cced34403541a794bb99c5616a96ff3d4",
+    "races": [
+      1,
+      2,
+      3,
+      4,
+      5,
+      6,
+      7,
+      8,
+      9
+    ]
+  },
+  {
+    "source_file": "NSW_20260825_Beaumont_Newcastle.html",
+    "state": "NSW",
+    "date": "2026-08-25",
+    "meeting": "Beaumont Newcastle",
+    "guide_sha256": "e055ddccc7a7a873e94a28460785295be18a40d35f9580a0b2b186a184970218",
+    "races": [
+      1,
+      2,
+      3,
+      4,
+      5,
+      6,
+      7
+    ]
+  },
+  {
+    "source_file": "NSW_20260825_Tamworth.html",
+    "state": "NSW",
+    "date": "2026-08-25",
+    "meeting": "Tamworth",
+    "guide_sha256": "c9652f5dff90b256e4029786c355bb525a84fcb715f4cdd591a907cacba25d27",
+    "races": [
+      1,
+      2,
+      3,
+      4,
+      5,
+      6,
+      7
+    ]
+  },
+  {
+    "source_file": "QLD_20260825_Rockhampton.html",
+    "state": "QLD",
+    "date": "2026-08-25",
+    "meeting": "Rockhampton",
+    "guide_sha256": "853d26f590806faf735e00aa39b600936140146ccee367f45bfa4e177659081c",
+    "races": [
+      1,
+      2,
+      3,
+      4,
+      5,
+      6,
+      7
+    ]
+  },
+  {
+    "source_file": "VIC_20260825_Sportsbet-Ballarat_Synthetic.html",
+    "state": "VIC",
+    "date": "2026-08-25",
+    "meeting": "Sportsbet-Ballarat Synthetic",
+    "guide_sha256": "58491273bf132c8422068b5768aedcf4682c4a0deacbc4c05ea6e3e6f0dcfa27",
+    "races": [
+      1,
+      2,
+      3,
+      4,
+      5,
+      6,
+      7
+    ]
+  },
+  {
+    "source_file": "NSW_20260826_Canterbury_Park.html",
+    "state": "NSW",
+    "date": "2026-08-26",
+    "meeting": "Canterbury Park",
+    "guide_sha256": "9b44a9799ef2c21d309a7d7006acc8e007421f189508343486eb94eecec5997f",
+    "races": [
+      1,
+      2,
+      3,
+      4,
+      5,
+      6,
+      7
+    ]
+  },
+  {
+    "source_file": "QLD_20260826_Doomben.html",
+    "state": "QLD",
+    "date": "2026-08-26",
+    "meeting": "Doomben",
+    "guide_sha256": "4150b0cfa0ddc15314a2580c739ad8df6d721f22968900a8244f45b41ec1c1bf",
+    "races": [
+      1,
+      2,
+      3,
+      4,
+      5,
+      6,
+      7,
+      8
+    ]
+  },
+  {
+    "source_file": "VIC_20260826_Bendigo.html",
+    "state": "VIC",
+    "date": "2026-08-26",
+    "meeting": "Bendigo",
+    "guide_sha256": "bb38bbe871282d83566ae60c8eafd95806519e575b59e8f3bb08453c9756bb60",
+    "races": [
+      1,
+      2,
+      3,
+      4,
+      5,
+      6,
+      7,
+      8
+    ]
+  },
+  {
+    "source_file": "WA_20260826_Belmont.html",
+    "state": "WA",
+    "date": "2026-08-26",
+    "meeting": "Belmont",
+    "guide_sha256": "2e9f3ad1ba2c59a44794c882aadfaa7ed89279c3bf6e9127cb13a54d4117169c",
+    "races": [
+      1,
+      2,
+      3,
+      4,
+      5,
+      6,
+      7,
+      8
+    ]
+  },
+  {
+    "source_file": "NSW_20260827_Wagga.html",
+    "state": "NSW",
+    "date": "2026-08-27",
+    "meeting": "Wagga",
+    "guide_sha256": "d885f5928886d65604004dd192adf807e70dd2966a54eaeba67abf7f85f91776",
+    "races": [
+      1,
+      2,
+      3,
+      4,
+      5,
+      6,
+      7,
+      8
+    ]
+  },
+  {
+    "source_file": "QLD_20260827_Ipswich.html",
+    "state": "QLD",
+    "date": "2026-08-27",
+    "meeting": "Ipswich",
+    "guide_sha256": "cc15ff859031c5e6347e56f7bf2a953c31f2994b7bdb6cbb0895358d8e4697c4",
+    "races": [
+      1,
+      2,
+      3,
+      4,
+      5,
+      6,
+      7,
+      8
+    ]
+  },
+  {
+    "source_file": "VIC_20260827_bet365_Seymour.html",
+    "state": "VIC",
+    "date": "2026-08-27",
+    "meeting": "bet365 Seymour",
+    "guide_sha256": "5ea412c7e892e730b5e15b80f97d54355cec99dbbb49cdbcdbcf6f3c94aa66c1",
+    "races": [
+      1,
+      2,
+      3,
+      4,
+      5,
+      6,
+      7,
+      8
+    ]
+  },
+  {
+    "source_file": "WA_20260827_Northam.html",
+    "state": "WA",
+    "date": "2026-08-27",
+    "meeting": "Northam",
+    "guide_sha256": "624ac07203f0781b8cab75f23bdc539b01485bdab3879f89705b10a4f756874d",
+    "races": [
+      1,
+      2,
+      3,
+      4,
+      5,
+      6,
+      7,
+      8
+    ]
+  },
+  {
+    "source_file": "NSW_20260828_Gosford.html",
+    "state": "NSW",
+    "date": "2026-08-28",
+    "meeting": "Gosford",
+    "guide_sha256": "b5cede7fb53fa60425980d9ec153bd9f6f898fe1ebabee674e4ac1ae582be9df",
+    "races": [
+      1,
+      2,
+      3,
+      4,
+      5,
+      6,
+      7,
+      8
+    ]
+  },
+  {
+    "source_file": "NSW_20260828_Moruya.html",
+    "state": "NSW",
+    "date": "2026-08-28",
+    "meeting": "Moruya",
+    "guide_sha256": "0b7dfd4db550f5a368c0db35ce7eab4b7e679ec3956f0cbe4112443adcf74a35",
+    "races": [
+      1,
+      2,
+      3,
+      4,
+      5,
+      6,
+      7,
+      8
+    ]
+  },
+  {
+    "source_file": "QLD_20260828_Aquis_Park_Gold_Coast.html",
+    "state": "QLD",
+    "date": "2026-08-28",
+    "meeting": "Aquis Park Gold Coast",
+    "guide_sha256": "70e19bfbe028dca4ee892e8499ca27d63d2fe75ac573c5c081800578c5a153cb",
+    "races": [
+      1,
+      2,
+      3,
+      4,
+      5,
+      6,
+      7,
+      8
+    ]
+  },
+  {
+    "source_file": "QLD_20260828_Ladbrokes_Cannon_Park.html",
+    "state": "QLD",
+    "date": "2026-08-28",
+    "meeting": "Ladbrokes Cannon Park",
+    "guide_sha256": "6d198cbe307a6b7948a5719730daec337a01424d20295a6e61750a356ae93891",
+    "races": [
+      1,
+      2,
+      3,
+      4,
+      5,
+      6,
+      7,
+      8
+    ]
+  },
+  {
+    "source_file": "SA_20260828_Naracoorte.html",
+    "state": "SA",
+    "date": "2026-08-28",
+    "meeting": "Naracoorte",
+    "guide_sha256": "82b53beadb2152745bc89ce0b0059e864eb238dcedc71a45464a619f78ec431f",
+    "races": [
+      1,
+      2,
+      3,
+      4,
+      5,
+      6,
+      7
+    ]
+  },
+  {
+    "source_file": "VIC_20260828_Ladbrokes_Geelong.html",
+    "state": "VIC",
+    "date": "2026-08-28",
+    "meeting": "Ladbrokes Geelong",
+    "guide_sha256": "65398405ea493b481a0cfc6aefbb723182134b787f20b4373f03d89502814ac6",
+    "races": [
+      1,
+      2,
+      3,
+      4,
+      5,
+      6,
+      7,
+      8,
+      9
+    ]
+  },
+  {
+    "source_file": "NSW_20260829_Grafton.html",
+    "state": "NSW",
+    "date": "2026-08-29",
+    "meeting": "Grafton",
+    "guide_sha256": "96f8863b75cce0db5aea4297f986abb8d780823765243137d92603365b879af9",
+    "races": [
+      1,
+      2,
+      3,
+      4,
+      5,
+      6,
+      7
+    ]
+  },
+  {
+    "source_file": "NSW_20260829_Kembla_Grange.html",
+    "state": "NSW",
+    "date": "2026-08-29",
+    "meeting": "Kembla Grange",
+    "guide_sha256": "5ab94ae8ec8af228fc41acccbf7ff7a8f279364f912c058a650a6b8b508a40fa",
+    "races": [
+      1,
+      2,
+      3,
+      4,
+      5,
+      6,
+      7,
+      8
+    ]
+  },
+  {
+    "source_file": "NSW_20260829_Rosehill_Gardens.html",
+    "state": "NSW",
+    "date": "2026-08-29",
+    "meeting": "Rosehill Gardens",
+    "guide_sha256": "22e65b5f5dda6e3189f439fe568374260749cd2a752d1068b575c675fdfbbe5f",
+    "races": [
+      1,
+      2,
+      3,
+      4,
+      5,
+      6,
+      7,
+      8,
+      9,
+      10
+    ]
+  },
+  {
+    "source_file": "QLD_20260829_Eagle_Farm.html",
+    "state": "QLD",
+    "date": "2026-08-29",
+    "meeting": "Eagle Farm",
+    "guide_sha256": "f244b32f67a830bedde9b849640e4445d7f0956878fa7890f609bc2aae1d87db",
+    "races": [
+      1,
+      2,
+      3,
+      4,
+      5,
+      6,
+      7,
+      8,
+      9,
+      10
+    ]
+  },
+  {
+    "source_file": "QLD_20260829_Ladbrokes_Cannon_Park.html",
+    "state": "QLD",
+    "date": "2026-08-29",
+    "meeting": "Ladbrokes Cannon Park",
+    "guide_sha256": "34f2c1a384490ffaceae67de7529f91e3154f89806e93d373645fda70695d508",
+    "races": [
+      1,
+      2,
+      3,
+      4,
+      5,
+      6,
+      7,
+      8
+    ]
+  },
+  {
+    "source_file": "QLD_20260829_Toowoomba.html",
+    "state": "QLD",
+    "date": "2026-08-29",
+    "meeting": "Toowoomba",
+    "guide_sha256": "3ab87fbbdabf52ddea3a8c870a3d31617b21718b566db567692b6bfc87e1df64",
+    "races": [
+      1,
+      2,
+      3,
+      4,
+      5,
+      6,
+      7,
+      8
+    ]
+  },
+  {
+    "source_file": "SA_20260829_Morphettville.html",
+    "state": "SA",
+    "date": "2026-08-29",
+    "meeting": "Morphettville",
+    "guide_sha256": "11ad808ac19bb7a3f29576e4007f9fbeffdfd11f8906a378e592439e185c7479",
+    "races": [
+      1,
+      2,
+      3,
+      4,
+      5,
+      6,
+      7,
+      8,
+      9
+    ]
+  },
+  {
+    "source_file": "VIC_20260829_BetDeluxe_Warracknabeal.html",
+    "state": "VIC",
+    "date": "2026-08-29",
+    "meeting": "BetDeluxe Warracknabeal",
+    "guide_sha256": "4f3e9b9a3dab427e91a3198c66c6db17710c35d91113c875f42a52458529dc93",
+    "races": [
+      1,
+      2,
+      3,
+      4,
+      5,
+      6,
+      7
+    ]
+  },
+  {
+    "source_file": "VIC_20260829_Caulfield.html",
+    "state": "VIC",
+    "date": "2026-08-29",
+    "meeting": "Caulfield",
+    "guide_sha256": "0eef5f51eeaa99f5b3b20ec3c753a6fd47653ccbdea9a1a9d26d15f6aa8e7a6b",
+    "races": [
+      1,
+      2,
+      3,
+      4,
+      5,
+      6,
+      7,
+      8,
+      9,
+      10
+    ]
+  },
+  {
+    "source_file": "WA_20260829_Belmont.html",
+    "state": "WA",
+    "date": "2026-08-29",
+    "meeting": "Belmont",
+    "guide_sha256": "4d2dfeddfeb904ce2779f909b6fd8fc2c9be5842ee19146f8731ea822cdc5075",
+    "races": [
+      1,
+      2,
+      3,
+      4,
+      5,
+      6,
+      7,
+      8
+    ]
+  },
+  {
+    "source_file": "WA_20260829_Kununurra.html",
+    "state": "WA",
+    "date": "2026-08-29",
+    "meeting": "Kununurra",
+    "guide_sha256": "1d8fdae480101b23a1fd91cd5cbe136658ead34f0f7ef6f6d3e725a435b51959",
+    "races": [
+      1,
+      2,
+      3,
+      4,
+      5,
+      6,
+      7
+    ]
+  },
+  {
+    "source_file": "NSW_20260830_Mudgee.html",
+    "state": "NSW",
+    "date": "2026-08-30",
+    "meeting": "Mudgee",
+    "guide_sha256": "feeb938edb0d64cdd43d7cbecefc8c3da21250ac26c17b24a967420ec26c826a",
+    "races": [
+      1,
+      2,
+      3,
+      4,
+      5,
+      6,
+      7
+    ]
+  },
+  {
+    "source_file": "NSW_20260830_Wyong.html",
+    "state": "NSW",
+    "date": "2026-08-30",
+    "meeting": "Wyong",
+    "guide_sha256": "e208b948990d6300a814d3b6ce5523a22a9ea0b019cef17b1b942ce52ca90b87",
+    "races": [
+      1,
+      2,
+      3,
+      4,
+      5,
+      6,
+      7,
+      8
+    ]
+  },
+  {
+    "source_file": "QLD_20260830_Townsville.html",
+    "state": "QLD",
+    "date": "2026-08-30",
+    "meeting": "Townsville",
+    "guide_sha256": "611c6910a7d809606a019116f73432633c3000724020a17a3454903c16fe1482",
+    "races": [
+      1,
+      2,
+      3,
+      4,
+      5,
+      6
+    ]
+  },
+  {
+    "source_file": "SA_20260830_Strathalbyn.html",
+    "state": "SA",
+    "date": "2026-08-30",
+    "meeting": "Strathalbyn",
+    "guide_sha256": "2228c424be0a6de7cd1d5381e00bb942765ea94652944cfbac5adbdf65f12114",
+    "races": [
+      1,
+      2,
+      3,
+      4,
+      5,
+      6,
+      7,
+      8
+    ]
+  },
+  {
+    "source_file": "VIC_20260830_Casterton.html",
+    "state": "VIC",
+    "date": "2026-08-30",
+    "meeting": "Casterton",
+    "guide_sha256": "9b48f22389e330a6e423c2948f3511598d74550f1d814e5ce70b78c9f63b2ca7",
+    "races": [
+      1,
+      2,
+      3,
+      4,
+      5,
+      6,
+      7
+    ]
+  },
+  {
+    "source_file": "VIC_20260830_bet365_Echuca.html",
+    "state": "VIC",
+    "date": "2026-08-30",
+    "meeting": "bet365 Echuca",
+    "guide_sha256": "e92d4702a36b6e0b14ab9409569cbc6aaa2a11bb92d47cfa99a48eba1e584389",
+    "races": [
+      1,
+      2,
+      3,
+      4,
+      5,
+      6,
+      7,
+      8
+    ]
+  },
+  {
+    "source_file": "WA_20260830_Carnarvon.html",
+    "state": "WA",
+    "date": "2026-08-30",
+    "meeting": "Carnarvon",
+    "guide_sha256": "f0fdcadfaf39dddffc7d0d230f9cc9a672e56832dc8c716c69fb7f8ec4e9cf48",
+    "races": [
+      1,
+      2,
+      3,
+      4,
+      5,
+      6
+    ]
+  },
+  {
+    "source_file": "NSW_20260831_Corowa.html",
+    "state": "NSW",
+    "date": "2026-08-31",
+    "meeting": "Corowa",
+    "guide_sha256": "a32c711171cfc3204981c2379ce231bca8efea4a4457de4dea62880d2208b50f",
+    "races": [
+      1,
+      2,
+      3,
+      4,
+      5,
+      6,
+      7
+    ]
+  },
+  {
+    "source_file": "NSW_20260831_Taree.html",
+    "state": "NSW",
+    "date": "2026-08-31",
+    "meeting": "Taree",
+    "guide_sha256": "793269492afa465b26b635a324c3beda1b434ba36e4af5b9cbb8f56f069b8696",
+    "races": [
+      1,
+      2,
+      3,
+      4,
+      5,
+      6,
+      7,
+      8
+    ]
+  },
+  {
+    "source_file": "VIC_20260831_Sportsbet-Ballarat_Synthetic.html",
+    "state": "VIC",
+    "date": "2026-08-31",
+    "meeting": "Sportsbet-Ballarat Synthetic",
+    "guide_sha256": "950bdec494244896457097b426c6c142ef3b04f47d6f48e5e1ebe11ab4c55ed7",
+    "races": [
+      1,
+      2,
+      3,
+      4,
+      5,
+      6,
+      7,
+      8,
+      9
+    ]
+  }
+]
