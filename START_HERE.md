@@ -13,6 +13,8 @@ This adds a separate, manually started collector. It reads Racing.com's public c
 
 The calendar controls and one August result page were checked in the browser. Offline tests pass. A GitHub-hosted browser run has NOT yet been tested. Live collection can still encounter missing meetings, venue naming differences, abandoned races, access restrictions or page changes. Those stop the run and remain unresolved; nothing is guessed.
 
+Update after pilot run 40595873244: fixed the month-change loading race. The first pilot stopped at `Calendar has no dated cells` while September was still loading. The collector now waits up to 60 seconds for a changed, nonempty grid; an empty grid no longer counts as a finished month change. It also dismisses the nonessential-cookie banner when present. The actual browser readiness predicate has a regression check for old grid -> blank grid -> new grid. This corrected version still needs one live pilot; do not start the full batches yet.
+
 ## Installation after Luke approves publishing these files
 
 Extract the setup ZIP. Add its contents to the ROOT of `smit5555/racing-form-guides`, preserving the `.github/workflows` folder. Do not put everything inside an extra `august_results_github_setup` folder. Review the changed files before committing. This package does not replace existing files such as `results.py`, `run.py`, model locks or feature builders.

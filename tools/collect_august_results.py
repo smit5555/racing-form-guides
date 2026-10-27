@@ -16,6 +16,11 @@ from urllib.parse import urlparse
 BATCHES = {"01-10": (1, 10), "11-20": (11, 20), "21-31": (21, 31)}
 ROOT = Path(__file__).resolve().parents[1]
 BLOCK = re.compile(r"access denied|access blocked|verify you are human|checking your browser|captcha|mimecast|unusual traffic|request blocked|security challenge", re.I)
+CALENDAR_READY = """old => {
+  const dates=[...document.querySelectorAll('[data-date]')]
+    .map(e=>e.getAttribute('data-date')).sort();
+  return dates.length>0 && (old===null || JSON.stringify(dates)!==old);
+}"""
 
 
 class AccessBlocked(RuntimeError):
@@ -79,10 +84,21 @@ class BrowserCollector:
         response = await self.page.goto(url, wait_until="domcontentloaded", timeout=60000)
         await check_block(self.page, response)
 
+    async def wait_calendar_dates(self, previous=None):
+        # Month changes first clear the grid, then populate the new dates.
+        # An empty grid is not a completed transition.
+        await self.page.wait_for_function(
+            CALENDAR_READY, arg=previous, timeout=60000)
+        await check_block(self.page)
+        return await self.page.locator("[data-date]").evaluate_all("es => es.map(e => e.getAttribute('data-date')).sort()")
+
     async def calendar(self):
         await self.goto("https://www.racing.com/calendar")
+        consent = self.page.get_by_role("button", name=re.compile(r"Decline Non.?Essential Cookies", re.I))
+        if await consent.count() == 1:
+            await consent.click()
         # The calendar normally opens on the current month. Use its public controls.
-        await self.page.locator("[data-date]").first.wait_for(timeout=30000)
+        dates = await self.wait_calendar_dates()
         for _ in range(24):
             if await self.page.locator('[data-date^="2026-08-15"]').count():
                 # Select the four race-meeting types; trials can share venue names.
@@ -95,9 +111,6 @@ class BrowserCollector:
                 await self.page.wait_for_timeout(2000)
                 await check_block(self.page)
                 return
-            dates = await self.page.locator("[data-date]").evaluate_all("es => es.map(e => e.getAttribute('data-date')).sort()")
-            if not dates:
-                raise ValueError("Calendar has no dated cells")
             middle = dates[len(dates) // 2][:7]
             label = "Previous month" if middle > "2026-08" else "Next month"
             button = self.page.get_by_role("button", name=label, exact=True)
@@ -105,8 +118,7 @@ class BrowserCollector:
                 raise ValueError("Calendar month control changed")
             await self.pace()
             await button.click()
-            await self.page.wait_for_function("old => {const a=[...document.querySelectorAll('[data-date]')].map(e=>e.getAttribute('data-date')).sort(); return JSON.stringify(a)!==old}", arg=json.dumps(dates), timeout=30000)
-            await check_block(self.page)
+            dates = await self.wait_calendar_dates(previous=json.dumps(dates))
         raise ValueError("August calendar was not found within 24 months")
 
     async def meeting_links(self, meeting):

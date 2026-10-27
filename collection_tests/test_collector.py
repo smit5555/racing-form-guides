@@ -1,5 +1,7 @@
 import importlib.util
 import json
+import shutil
+import subprocess
 from pathlib import Path
 import unittest
 
@@ -10,6 +12,12 @@ spec.loader.exec_module(c)
 
 
 class CollectionTests(unittest.TestCase):
+    @unittest.skipUnless(shutil.which("node"), "Node is required for the browser predicate regression check")
+    def test_calendar_month_transition(self):
+        # Exercise the actual browser predicate against old -> empty -> new DOMs.
+        script = "const ready=" + c.CALENDAR_READY + "; let cells=[]; global.document={querySelectorAll:()=>cells.map(d=>({getAttribute:()=>d}))}; const old=JSON.stringify(['2026-09-15T14:00:00.000Z']); const check=(values,previous,expected)=>{cells=values;if(ready(previous)!==expected)throw Error('Incorrect calendar readiness: '+JSON.stringify(values));}; check([],null,false);check([],old,false);check(['2026-09-15T14:00:00.000Z'],old,false);check(['2026-08-15T14:00:00.000Z'],old,true);check(['2026-08-15T14:00:00.000Z'],null,true);"
+        subprocess.run([shutil.which("node"), "-e", script], check=True, capture_output=True, text=True)
+
     def test_manifest(self):
         data = json.loads((ROOT / "inputs/august_2026_meetings.json").read_text())
         self.assertEqual(len(data), 171)
