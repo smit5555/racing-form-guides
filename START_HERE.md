@@ -15,6 +15,8 @@ The calendar controls and one August result page were checked in the browser. Of
 
 Update after pilot run 40595873244: fixed the month-change loading race. The first pilot stopped at `Calendar has no dated cells` while September was still loading. The collector now waits up to 60 seconds for a changed, nonempty grid; an empty grid no longer counts as a finished month change. It also dismisses the nonessential-cookie banner when present. The actual browser readiness predicate has a regression check for old grid -> blank grid -> new grid. This corrected version still needs one live pilot; do not start the full batches yet.
 
+Version 2026-10-28.3, after pilot 40596401543: the calendar reached August but was still loading after filter changes. The collector now waits for the exact requested day after those changes and pins the browser timezone to Australia/Brisbane (GitHub runners otherwise inherit UTC, which changes midnight date keys). Cookie dismissal is checked again after loading. The ZIP includes failure date-cell diagnostics and the collector version in status.json. Seven offline checks pass, including actual JavaScript predicates for both loading failures and the Brisbane/UTC date boundary. This version has not completed a GitHub pilot yet.
+
 ## Installation after Luke approves publishing these files
 
 Extract the setup ZIP. Add its contents to the ROOT of `smit5555/racing-form-guides`, preserving the `.github/workflows` folder. Do not put everything inside an extra `august_results_github_setup` folder. Review the changed files before committing. This package does not replace existing files such as `results.py`, `run.py`, model locks or feature builders.

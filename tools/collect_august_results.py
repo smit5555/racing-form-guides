@@ -14,6 +14,7 @@ from pathlib import Path
 from urllib.parse import urlparse
 
 BATCHES = {"01-10": (1, 10), "11-20": (11, 20), "21-31": (21, 31)}
+COLLECTOR_VERSION = "2026-10-28.3"
 ROOT = Path(__file__).resolve().parents[1]
 BLOCK = re.compile(r"access denied|access blocked|verify you are human|checking your browser|captcha|mimecast|unusual traffic|request blocked|security challenge", re.I)
 CALENDAR_READY = """old => {
@@ -21,6 +22,12 @@ CALENDAR_READY = """old => {
     .map(e=>e.getAttribute('data-date')).sort();
   return dates.length>0 && (old===null || JSON.stringify(dates)!==old);
 }"""
+CALENDAR_DAY_READY = "target => [...document.querySelectorAll('[data-date]')].some(e => e.getAttribute('data-date').slice(0,19)===target)"
+
+
+def calendar_day_key(date):
+    from datetime import timedelta
+    return (datetime.fromisoformat(date).replace(tzinfo=timezone.utc) - timedelta(hours=10)).isoformat()[:19]
 
 
 class AccessBlocked(RuntimeError):
@@ -92,11 +99,14 @@ class BrowserCollector:
         await check_block(self.page)
         return await self.page.locator("[data-date]").evaluate_all("es => es.map(e => e.getAttribute('data-date')).sort()")
 
+    async def dismiss_cookie_banner(self):
+        consent = self.page.get_by_role("button", name=re.compile(r"Decline Non.?Essential Cookies", re.I))
+        if await consent.count() == 1 and await consent.is_visible():
+            await consent.click()
+
     async def calendar(self):
         await self.goto("https://www.racing.com/calendar")
-        consent = self.page.get_by_role("button", name=re.compile(r"Decline Non.?Essential Cookies", re.I))
-        if await consent.count() == 1:
-            await consent.click()
+        await self.dismiss_cookie_banner()
         # The calendar normally opens on the current month. Use its public controls.
         dates = await self.wait_calendar_dates()
         for _ in range(24):
@@ -107,9 +117,11 @@ class BrowserCollector:
                     if "calendar__pill-filter--selected" not in (await button.get_attribute("class") or ""):
                         await self.pace()
                         await button.click()
-                # Wait for filter updates before examining meeting buttons.
-                await self.page.wait_for_timeout(2000)
-                await check_block(self.page)
+                        await self.wait_calendar_dates()
+                # Filters reload asynchronously. The meeting step also waits for
+                # its exact date, rather than assuming a fixed delay is enough.
+                await self.wait_calendar_dates()
+                await self.dismiss_cookie_banner()
                 return
             middle = dates[len(dates) // 2][:7]
             label = "Previous month" if middle > "2026-08" else "Next month"
@@ -125,10 +137,13 @@ class BrowserCollector:
         # Calendar dates are local midnight in Brisbane, encoded as UTC.
         date = meeting["date"]
         cells = self.page.locator("[data-date]")
+        target = calendar_day_key(date)
+        await self.page.wait_for_function(
+            CALENDAR_DAY_READY, arg=target, timeout=60000)
+        await check_block(self.page)
+        await self.dismiss_cookie_banner()
         values = await cells.evaluate_all("es => es.map(e => e.getAttribute('data-date'))")
-        from datetime import timedelta
-        target = datetime.fromisoformat(date).replace(tzinfo=timezone.utc) - timedelta(hours=10)
-        matches = [v for v in values if v[:19] == target.isoformat()[:19]]
+        matches = [v for v in values if v[:19] == target]
         if len(matches) != 1:
             raise ValueError("Expected exactly one calendar day")
         cell = self.page.locator('[data-date="' + matches[0] + '"]')
@@ -209,13 +224,16 @@ async def collect(args):
     if args.pilot:
         meetings = meetings[:1]
     out = Path(args.output)
-    report = {"batch": args.batch, "pilot": args.pilot, "status": "running", "required_meetings": len(meetings), "expected_races": sum(len(m["races"]) for m in meetings), "captured_meetings": 0, "errors": [], "verified_for_backtest": False}
+    report = {"collector_version": COLLECTOR_VERSION, "browser_timezone": "Australia/Brisbane", "batch": args.batch, "pilot": args.pilot, "status": "running", "required_meetings": len(meetings), "expected_races": sum(len(m["races"]) for m in meetings), "captured_meetings": 0, "errors": [], "verified_for_backtest": False}
     out.mkdir(parents=True, exist_ok=True)
     write_json(out / "status.json", report)
     async with async_playwright() as p:
         browser = await p.chromium.launch()
-        calendar_page = await browser.new_page(viewport={"width": 1440, "height": 1000})
-        race_page = await browser.new_page(viewport={"width": 1440, "height": 1000})
+        # Calendar data-date is local midnight, so pin the same timezone used
+        # for guide dates instead of inheriting the GitHub runner's UTC zone.
+        context = await browser.new_context(timezone_id="Australia/Brisbane", locale="en-AU", viewport={"width": 1440, "height": 1000})
+        calendar_page = await context.new_page()
+        race_page = await context.new_page()
         limiter = {"last_action": 0}
         calendar = BrowserCollector(calendar_page, limiter)
         races = BrowserCollector(race_page, limiter)
@@ -248,6 +266,14 @@ async def collect(args):
         except Exception as exc:
             report["status"] = "stopped"
             report["stop_reason"] = str(exc)
+            try:
+                write_json(out / "calendar_diagnostics.json", {
+                    "url": calendar_page.url, "title": await calendar_page.title(),
+                    "date_cells": await calendar_page.locator("[data-date]").evaluate_all("es=>es.map(e=>e.getAttribute('data-date'))"),
+                    "error_type": type(exc).__name__,
+                })
+            except Exception:
+                pass
             for name, page in (("calendar", calendar_page), ("race", race_page)):
                 try:
                     await page.screenshot(path=str(out / (name + "_stopped.png")), full_page=True)

@@ -18,6 +18,14 @@ class CollectionTests(unittest.TestCase):
         script = "const ready=" + c.CALENDAR_READY + "; let cells=[]; global.document={querySelectorAll:()=>cells.map(d=>({getAttribute:()=>d}))}; const old=JSON.stringify(['2026-09-15T14:00:00.000Z']); const check=(values,previous,expected)=>{cells=values;if(ready(previous)!==expected)throw Error('Incorrect calendar readiness: '+JSON.stringify(values));}; check([],null,false);check([],old,false);check(['2026-09-15T14:00:00.000Z'],old,false);check(['2026-08-15T14:00:00.000Z'],old,true);check(['2026-08-15T14:00:00.000Z'],null,true);"
         subprocess.run([shutil.which("node"), "-e", script], check=True, capture_output=True, text=True)
 
+    @unittest.skipUnless(shutil.which("node"), "Node is required for the browser predicate regression check")
+    def test_day_waits_for_filter_reload(self):
+        target = c.calendar_day_key("2026-08-01")
+        self.assertEqual(target, "2026-07-31T14:00:00")
+        self.assertEqual(c.calendar_day_key("2026-08-31"), "2026-08-30T14:00:00")
+        script = "const ready=" + c.CALENDAR_DAY_READY + "; let cells=[]; global.document={querySelectorAll:()=>cells.map(d=>({getAttribute:()=>d}))}; const target=" + json.dumps(target) + "; if(ready(target))throw Error('Empty filter reload treated as ready'); cells=['2026-08-01T00:00:00.000Z']; if(ready(target))throw Error('UTC midnight treated as Brisbane midnight'); cells=['2026-07-31T14:00:00.000Z']; if(!ready(target))throw Error('Expected Brisbane day was rejected');"
+        subprocess.run([shutil.which("node"), "-e", script], check=True, capture_output=True, text=True)
+
     def test_manifest(self):
         data = json.loads((ROOT / "inputs/august_2026_meetings.json").read_text())
         self.assertEqual(len(data), 171)
