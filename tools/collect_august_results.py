@@ -14,7 +14,7 @@ from pathlib import Path
 from urllib.parse import urlparse
 
 BATCHES = {"01-10": (1, 10), "11-20": (11, 20), "21-31": (21, 31)}
-COLLECTOR_VERSION = "2026-10-28.3"
+COLLECTOR_VERSION = "2026-10-28.4"
 ROOT = Path(__file__).resolve().parents[1]
 BLOCK = re.compile(r"access denied|access blocked|verify you are human|checking your browser|captcha|mimecast|unusual traffic|request blocked|security challenge", re.I)
 CALENDAR_READY = """old => {
@@ -28,6 +28,55 @@ CALENDAR_DAY_READY = "target => [...document.querySelectorAll('[data-date]')].so
 def calendar_day_key(date):
     from datetime import timedelta
     return (datetime.fromisoformat(date).replace(tzinfo=timezone.utc) - timedelta(hours=10)).isoformat()[:19]
+
+
+def has_final_result(text):
+    return re.search(r"\bFinal\s+Result\b", text) is not None
+
+
+def validate_capture(data, meeting):
+    for key in ("source_file", "meeting", "date", "state", "guide_sha256"):
+        if data.get(key) != meeting[key]:
+            raise ValueError("Resume meeting identity mismatch: " + key)
+    if data.get("provider") != "racing.com_browser_capture":
+        raise ValueError("Unexpected resume provider")
+    numbers = []
+    for race in data.get("races", []):
+        number = race_number(race["url"], meeting["date"])
+        if number != race["race"] or number not in meeting["races"]:
+            raise ValueError("Resume race identity mismatch")
+        validate_title(race["heading"], meeting, number)
+        if race.get("status") != "Final Result" or not race.get("rows") or "SP" not in race.get("headers", []):
+            raise ValueError("Incomplete resume result")
+        if any(not r.get("horse") or len(r["cells"]) != len(race["headers"]) for r in race["rows"]):
+            raise ValueError("Invalid resume row")
+        numbers.append(number)
+    if len(numbers) != len(set(numbers)):
+        raise ValueError("Duplicate resume race")
+    if data.get("collection_complete") and sorted(numbers) != meeting["races"]:
+        raise ValueError("Resume completeness mismatch")
+    return set(numbers)
+
+
+def seed_captures(out, meetings, batch):
+    seed = ROOT / "inputs" / ("resume-" + batch)
+    if not seed.exists():
+        return
+    hashes = json.loads((seed / "sha256.json").read_text(encoding="utf-8"))
+    known = {Path(m["source_file"]).stem + ".racing_com.json": m for m in meetings}
+    for name, digest in hashes.items():
+        if name not in known:
+            # Pilot only restores its selected meeting.
+            continue
+        raw = (seed / name).read_bytes()
+        if hashlib.sha256(raw).hexdigest() != digest:
+            raise ValueError("Resume evidence hash mismatch")
+        validate_capture(json.loads(raw), known[name])
+        target = out / "captures" / name
+        if target.exists():
+            raise ValueError("Output already contains captures; use an empty directory")
+        target.parent.mkdir(parents=True, exist_ok=True)
+        target.write_bytes(raw)
 
 
 class AccessBlocked(RuntimeError):
@@ -196,7 +245,7 @@ class BrowserCollector:
         await self.goto(url)
         await self.page.locator(".race-entry-row").first.wait_for(timeout=30000)
         text = await check_block(self.page)
-        if "Final Result" not in text:
+        if not has_final_result(text):
             raise ValueError("Final Result not displayed")
         title = await self.page.title()
         validate_title(title, meeting, number)
@@ -226,6 +275,7 @@ async def collect(args):
     out = Path(args.output)
     report = {"collector_version": COLLECTOR_VERSION, "browser_timezone": "Australia/Brisbane", "batch": args.batch, "pilot": args.pilot, "status": "running", "required_meetings": len(meetings), "expected_races": sum(len(m["races"]) for m in meetings), "captured_meetings": 0, "errors": [], "verified_for_backtest": False}
     out.mkdir(parents=True, exist_ok=True)
+    seed_captures(out, meetings, args.batch)
     write_json(out / "status.json", report)
     async with async_playwright() as p:
         browser = await p.chromium.launch()
@@ -241,15 +291,22 @@ async def collect(args):
             await calendar.calendar()
             for meeting in meetings:
                 path = out / "captures" / (Path(meeting["source_file"]).stem + ".racing_com.json")
-                # Existing evidence is not silently trusted/reused. Restore is a separate reviewed action.
-                if path.exists():
-                    raise ValueError("Output already contains captures; choose an empty output directory")
                 try:
+                    capture = json.loads(path.read_text(encoding="utf-8")) if path.exists() else None
+                    saved = validate_capture(capture, meeting) if capture else set()
+                    if saved == set(meeting["races"]):
+                        report["captured_meetings"] += 1
+                        report["resumed_meetings"] = report.get("resumed_meetings", 0) + 1
+                        continue
                     urls = await calendar.meeting_links(meeting)
-                    capture = {"provider": "racing.com_browser_capture", **meeting, "captured_utc": datetime.now(timezone.utc).isoformat(), "races": []}
+                    if capture is None:
+                        capture = {"provider": "racing.com_browser_capture", **meeting, "captured_utc": datetime.now(timezone.utc).isoformat(), "races": []}
                     # Per-race checkpoint: partial meetings are retained but never labelled complete.
                     for url in urls:
+                        if race_number(url, meeting["date"]) in saved:
+                            continue
                         capture["races"].append(await races.capture(url, meeting))
+                        capture["races"].sort(key=lambda r: r["race"])
                         capture["collection_complete"] = len(capture["races"]) == len(urls)
                         write_json(path, capture)
                     report["captured_meetings"] += 1

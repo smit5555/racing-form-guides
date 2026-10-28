@@ -12,6 +12,34 @@ spec.loader.exec_module(c)
 
 
 class CollectionTests(unittest.TestCase):
+    def test_final_result_line_break(self):
+        for text in ("Final Result", "Final\nResult", "Final  \n Result"):
+            self.assertTrue(c.has_final_result(text))
+        self.assertFalse(c.has_final_result("Interim Result"))
+        self.assertFalse(c.has_final_result("Final Fields"))
+
+    def test_saved_batch_evidence(self):
+        manifest = {m["source_file"]: m for m in json.loads((ROOT / "inputs/august_2026_meetings.json").read_text())}
+        folder = ROOT / "inputs/resume-01-10"
+        if not folder.exists():
+            self.skipTest("No reviewed continuation evidence included")
+        import hashlib
+        import copy
+        hashes = json.loads((folder / "sha256.json").read_text())
+        total = complete = 0
+        for name, digest in hashes.items():
+            raw = (folder / name).read_bytes()
+            self.assertEqual(hashlib.sha256(raw).hexdigest(), digest)
+            data = json.loads(raw)
+            meeting = manifest[data["source_file"]]
+            total += len(c.validate_capture(data, meeting))
+            complete += bool(data["collection_complete"])
+            bad = copy.deepcopy(data)
+            bad["date"] = "2026-09-01"
+            with self.assertRaises(ValueError):
+                c.validate_capture(bad, meeting)
+        self.assertEqual((len(hashes), total, complete), (33, 255, 32))
+
     @unittest.skipUnless(shutil.which("node"), "Node is required for the browser predicate regression check")
     def test_calendar_month_transition(self):
         # Exercise the actual browser predicate against old -> empty -> new DOMs.
