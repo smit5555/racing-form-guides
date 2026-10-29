@@ -14,7 +14,7 @@ from pathlib import Path
 from urllib.parse import urlparse
 
 BATCHES = {"01-10": (1, 10), "11-20": (11, 20), "21-31": (21, 31)}
-COLLECTOR_VERSION = "2026-10-28.5"
+COLLECTOR_VERSION = "2026-10-29.6"
 ROOT = Path(__file__).resolve().parents[1]
 BLOCK = re.compile(r"access denied|access blocked|verify you are human|checking your browser|captcha|mimecast|unusual traffic|request blocked|security challenge", re.I)
 CALENDAR_READY = """old => {
@@ -23,7 +23,7 @@ CALENDAR_READY = """old => {
   return dates.length>0 && (old===null || JSON.stringify(dates)!==old);
 }"""
 CALENDAR_DAY_READY = "target => [...document.querySelectorAll('[data-date]')].some(e => e.getAttribute('data-date').slice(0,19)===target)"
-RESULT_READY = r"() => /\bFinal\s+Result\b/.test(document.body.innerText) && document.querySelectorAll('.race-entry-row').length>0"
+RESULT_READY = r"() => /\b(Final\s+Result|Abnd|Abandoned)\b/.test(document.body.innerText) && document.querySelectorAll('.race-entry-row').length>0"
 
 
 def calendar_day_key(date):
@@ -78,6 +78,37 @@ def seed_captures(out, meetings, batch):
             raise ValueError("Output already contains captures; use an empty directory")
         target.parent.mkdir(parents=True, exist_ok=True)
         target.write_bytes(raw)
+
+
+async def capture_remaining(collector, urls, meeting, capture, path, out, report):
+    saved = {r["race"] for r in capture["races"]}
+    for url in urls:
+        number = race_number(url, meeting["date"])
+        if number in saved:
+            continue
+        try:
+            result = await collector.capture(url, meeting)
+        except AccessBlocked:
+            raise
+        except Exception as exc:
+            # A missing/interim/contradictory result is quarantined. Continue
+            # independent races once the source is confirmed not to be blocked.
+            text = await check_block(collector.page)
+            issue = {"source_file": meeting["source_file"], "race": number, "url": url,
+                     "error": str(exc), "title": await collector.page.title(), "page_text": text}
+            report["errors"].append({k: v for k, v in issue.items() if k != "page_text"})
+            stem = Path(meeting["source_file"]).stem + f"_race{number}"
+            write_json(out / "issues" / (stem + ".json"), issue)
+            try:
+                await collector.page.screenshot(path=str(out / "issues" / (stem + ".png")), full_page=True)
+            except Exception:
+                pass
+        else:
+            capture["races"].append(result)
+            saved.add(number)
+        capture["races"].sort(key=lambda r: r["race"])
+        capture["collection_complete"] = saved == set(meeting["races"])
+        write_json(path, capture)
 
 
 class AccessBlocked(RuntimeError):
@@ -304,25 +335,22 @@ async def collect(args):
                     urls = await calendar.meeting_links(meeting)
                     if capture is None:
                         capture = {"provider": "racing.com_browser_capture", **meeting, "captured_utc": datetime.now(timezone.utc).isoformat(), "races": []}
-                    # Per-race checkpoint: partial meetings are retained but never labelled complete.
-                    for url in urls:
-                        if race_number(url, meeting["date"]) in saved:
-                            continue
-                        capture["races"].append(await races.capture(url, meeting))
-                        capture["races"].sort(key=lambda r: r["race"])
-                        capture["collection_complete"] = len(capture["races"]) == len(urls)
-                        write_json(path, capture)
-                    report["captured_meetings"] += 1
+                    await capture_remaining(races, urls, meeting, capture, path, out, report)
+                    report["captured_meetings"] += bool(capture.get("collection_complete"))
                     print(f"Captured {meeting['source_file']}", flush=True)
                 except AccessBlocked:
                     raise
                 except Exception as exc:
                     report["errors"].append({"source_file": meeting["source_file"], "error": str(exc)})
-                    # Unknown UI state: stop instead of clicking onward or repeating requests.
-                    raise RuntimeError("Collection stopped for review; partial evidence saved") from exc
+                    # Reset the calendar for the next independent meeting. Never
+                    # repeat this failed meeting, and never continue after a block.
+                    await check_block(calendar_page)
+                    if race_page.url != "about:blank":
+                        await check_block(race_page)
+                    await calendar.calendar()
                 finally:
                     write_json(out / "status.json", report)
-            report["status"] = "captured_pending_verification"
+            report["status"] = "captured_with_gaps_pending_verification" if report["errors"] else "captured_pending_verification"
         except Exception as exc:
             report["status"] = "stopped"
             report["stop_reason"] = str(exc)
@@ -345,7 +373,7 @@ async def collect(args):
     files = {str(f.relative_to(out)): hashlib.sha256(f.read_bytes()).hexdigest() for f in out.rglob("*") if f.is_file()}
     write_json(out / "sha256.json", files)
     print(json.dumps(report, indent=2))
-    return 0 if report["status"] == "captured_pending_verification" else 2
+    return 2 if report["status"] == "stopped" else 0
 
 
 if __name__ == "__main__":

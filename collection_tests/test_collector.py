@@ -38,7 +38,7 @@ class CollectionTests(unittest.TestCase):
             bad["date"] = "2026-09-01"
             with self.assertRaises(ValueError):
                 c.validate_capture(bad, meeting)
-        self.assertEqual((len(hashes), total, complete), (34, 264, 33))
+        self.assertEqual((len(hashes), total, complete), (50, 390, 49))
 
     @unittest.skipUnless(shutil.which("node"), "Node is required for the browser predicate regression check")
     def test_final_status_and_rows_render_separately(self):
