@@ -14,7 +14,7 @@ from pathlib import Path
 from urllib.parse import urlparse
 
 BATCHES = {"01-10": (1, 10), "11-20": (11, 20), "21-31": (21, 31)}
-COLLECTOR_VERSION = "2026-10-28.4"
+COLLECTOR_VERSION = "2026-10-28.5"
 ROOT = Path(__file__).resolve().parents[1]
 BLOCK = re.compile(r"access denied|access blocked|verify you are human|checking your browser|captcha|mimecast|unusual traffic|request blocked|security challenge", re.I)
 CALENDAR_READY = """old => {
@@ -23,6 +23,7 @@ CALENDAR_READY = """old => {
   return dates.length>0 && (old===null || JSON.stringify(dates)!==old);
 }"""
 CALENDAR_DAY_READY = "target => [...document.querySelectorAll('[data-date]')].some(e => e.getAttribute('data-date').slice(0,19)===target)"
+RESULT_READY = r"() => /\bFinal\s+Result\b/.test(document.body.innerText) && document.querySelectorAll('.race-entry-row').length>0"
 
 
 def calendar_day_key(date):
@@ -243,7 +244,9 @@ class BrowserCollector:
     async def capture(self, url, meeting):
         number = race_number(url, meeting["date"])
         await self.goto(url)
-        await self.page.locator(".race-entry-row").first.wait_for(timeout=30000)
+        # Result rows and the final-status label can render at different times.
+        # Wait on the existing page; do not reload or repeat a source request.
+        await self.page.wait_for_function(RESULT_READY, timeout=60000)
         text = await check_block(self.page)
         if not has_final_result(text):
             raise ValueError("Final Result not displayed")

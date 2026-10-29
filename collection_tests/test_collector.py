@@ -38,7 +38,12 @@ class CollectionTests(unittest.TestCase):
             bad["date"] = "2026-09-01"
             with self.assertRaises(ValueError):
                 c.validate_capture(bad, meeting)
-        self.assertEqual((len(hashes), total, complete), (33, 255, 32))
+        self.assertEqual((len(hashes), total, complete), (34, 264, 33))
+
+    @unittest.skipUnless(shutil.which("node"), "Node is required for the browser predicate regression check")
+    def test_final_status_and_rows_render_separately(self):
+        script = "const ready=" + c.RESULT_READY + "; let text='',rows=[];global.document={body:{get innerText(){return text}},querySelectorAll:()=>rows}; const check=(t,r,want)=>{text=t;rows=r;if(ready()!==want)throw Error('Incorrect result readiness');}; check('',[{}],false);check('Interim Result',[{}],false);check('Final Result',[],false);check('Final\\nResult',[{}],true);"
+        subprocess.run([shutil.which("node"), "-e", script], check=True, capture_output=True, text=True)
 
     @unittest.skipUnless(shutil.which("node"), "Node is required for the browser predicate regression check")
     def test_calendar_month_transition(self):
