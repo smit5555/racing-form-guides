@@ -1,0 +1,44 @@
+name: Racenet results pilot
+on:
+  workflow_dispatch:
+    inputs:
+      race_url:
+        description: Individual Racenet race results URL (whole embedded meeting collected)
+        required: true
+        default: https://www.racenet.com.au/results/horse-racing/kalgoorlie-20261001/gordons-pink-gin-maiden-race-1
+        type: string
+permissions:
+  contents: read
+concurrency:
+  group: racenet-results-pilot
+  cancel-in-progress: false
+jobs:
+  collect:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Install isolated collector dependencies
+        run: |
+          mkdir -p "$RUNNER_TEMP/racenet-pilot"
+          cp tools/racenet-results*.mjs "$RUNNER_TEMP/racenet-pilot/"
+          cd "$RUNNER_TEMP/racenet-pilot"
+          npm install --no-save --package-lock=false playwright@1.56.1
+          npx playwright install --with-deps chromium
+      - name: Collect one meeting
+        env:
+          RACE_URL: ${{ inputs.race_url }}
+        run: |
+          cd "$RUNNER_TEMP/racenet-pilot"
+          node racenet-results.mjs
+      - name: Save results and diagnostics
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: racenet-results-${{ github.run_id }}
+          path: ${{ runner.temp }}/racenet-pilot/racenet-output/
+          retention-days: 14
+          if-no-files-found: warn
