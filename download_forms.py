@@ -276,6 +276,32 @@ def main():
                     guide = client.get(url)
                 manifest['checked_candidates'] += 1
                 if direct_lookup and form_unavailable(guide):
+                    links = Links()
+                    links.feed(guide)
+                    original_key = parse_qs(urlsplit(url).query).get('Key')
+                    alternatives = []
+                    for href in links.links:
+                        candidate = encode_url(urljoin(url, href))
+                        parts = urlsplit(candidate)
+                        if (parts.scheme == 'https' and parts.netloc == 'racingaustralia.horse'
+                                and parts.path.lower() in ('/freefields/form.aspx', '/freefields/allform.aspx')
+                                and parse_qs(parts.query).get('Key') == original_key
+                                and candidate != url and candidate not in alternatives):
+                            alternatives.append(candidate)
+                    for index, candidate in enumerate(alternatives[:2], 1):
+                        logging.info('Checking advertised form link: %s', candidate)
+                        alternative = client.get(candidate)
+                        alt_path = evidence / (path.stem + '-advertised-' + str(index) + '.html')
+                        alt_path.write_text(alternative, encoding='utf-8')
+                        manifest.setdefault('source_pages', []).append({
+                            'file': str(alt_path.relative_to(folder)), 'requested_url': candidate,
+                            'venue': venue, 'state': state,
+                            'note': 'Advertised form response; requires validation.'})
+                        if not form_unavailable(alternative):
+                            guide = alternative
+                            url = candidate
+                            break
+                if direct_lookup and form_unavailable(guide):
                     logging.warning('Guide unavailable or venue key unresolved: %s (%s)', venue, state)
                     manifest['unavailable'].append({'venue': venue, 'state': state, 'url': url,
                         'reason': 'Source explicitly says form unavailable; may also be an unresolved venue key.'})
