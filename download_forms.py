@@ -260,6 +260,17 @@ def main():
                 if path.exists():
                     raise StopRun(f'File already exists: {path}; refusing to overwrite.')
                 guide = client.get(url)
+
+                # Preserve the exact decoded response before availability checks.
+                evidence = folder / "source-pages"
+                evidence.mkdir(exist_ok=True)
+                evidence_path = evidence / path.name
+                evidence_path.write_text(guide, encoding="utf-8")
+                manifest.setdefault("source_pages", []).append({
+                    "file": str(evidence_path.relative_to(folder)),
+                    "requested_url": url, "venue": venue, "state": state,
+                    "note": "Decoded server response, not a validated form guide."
+                })
                 if historical and not direct_lookup:
                     url = historical_form_link(guide, url)
                     guide = client.get(url)
@@ -316,3 +327,4 @@ def main():
 
 if __name__ == '__main__':
     raise SystemExit(main())
+
