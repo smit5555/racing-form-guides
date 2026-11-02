@@ -1,0 +1,137 @@
+name: Discover and download Punters guide
+on:
+  workflow_dispatch:
+    inputs:
+      form_url:
+        description: One Punters race form-guide page URL
+        required: true
+        default: https://www.punters.com.au/form-guide/horses/eagle-farm-20260701/the-gibson-maiden-handicap-race-1/
+        type: string
+permissions:
+  contents: read
+concurrency:
+  group: punters-pdf-downloads
+  cancel-in-progress: false
+jobs:
+  download:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Install PDF reader
+        run: python -m pip install pypdf==6.1.1
+      - name: Discover published A4 PDF link
+        id: discover
+        env:
+          FORM_URL: ${{ inputs.form_url }}
+        shell: python
+        run: |
+          import os, re, json
+          from pathlib import Path
+          from html.parser import HTMLParser
+          from urllib.parse import urlsplit
+          from urllib.request import Request, build_opener, HTTPRedirectHandler
+          out=Path('pdf-guides'); out.mkdir(exist_ok=True)
+          report={'status':'started','source_url':os.environ['FORM_URL']}
+          class NoRedirect(HTTPRedirectHandler):
+              def redirect_request(self, req, fp, code, msg, headers, newurl):
+                  raise RuntimeError('Redirect: stopped for review')
+          class Links(HTMLParser):
+              def __init__(self): super().__init__(); self.urls=[]
+              def handle_starttag(self,tag,attrs):
+                  if tag=='a': self.urls.append(dict(attrs).get('href',''))
+          try:
+              url=os.environ['FORM_URL']; p=urlsplit(url)
+              if (p.scheme!='https' or p.netloc!='www.punters.com.au' or p.query
+                  or not re.fullmatch(r'/form-guide/horses/([a-z0-9-]+-\d{8})/[^/]+/?',p.path)):
+                  raise ValueError('Use a normal individual Punters race form-guide URL')
+              slug=re.fullmatch(r'/form-guide/horses/([a-z0-9-]+-\d{8})/[^/]+/?',p.path).group(1)
+              date=slug[-8:]
+              with build_opener(NoRedirect()).open(Request(url,headers={'User-Agent':'FormGuidePDFCollector/1.0 (personal one-meeting pilot)'}),timeout=60) as response:
+                  raw=response.read(10000001); report['http_status']=response.status
+              (out/'form-page.html').write_bytes(raw)
+              if len(raw)>10000000: raise ValueError('Form page too large')
+              links=Links(); links.feed(raw.decode('utf-8',errors='replace'))
+              pdfs=sorted(set(u for u in links.urls if re.fullmatch(r'https://puntcdn\.com/form-guides/'+date+r'_[a-zA-Z0-9_-]+_\d+\.pdf',u)))
+              if len(pdfs)!=1: raise ValueError('Expected one advertised standard A4 PDF; found '+str(len(pdfs))+'. Inspect form-page.html; do not guess IDs.')
+              report.update(status='discovered_requires_identity_review',pdf_url=pdfs[0])
+              with open(os.environ['GITHUB_OUTPUT'],'a') as f: f.write('pdf_url='+pdfs[0]+'\n')
+              print('Found advertised PDF:',pdfs[0])
+          except Exception as exc:
+              report.update(status='stopped',error=str(exc))
+              if hasattr(exc,'read'): (out/'form-page-error.html').write_bytes(exc.read(1000000))
+              raise
+          finally:
+              (out/'discovery.json').write_text(json.dumps(report,indent=2),encoding='utf-8')
+      - name: Download and inspect supplied guides
+        env:
+          PDF_URLS: ${{ steps.discover.outputs.pdf_url }}
+        shell: python
+        run: |
+          import os, re, json, hashlib, time, datetime, io
+          from pathlib import Path
+          from urllib.parse import urlsplit
+          from urllib.request import Request, build_opener, HTTPRedirectHandler
+          from pypdf import PdfReader
+          out = Path('pdf-guides'); out.mkdir(exist_ok=True)
+          report = {'status': 'running', 'started_at': datetime.datetime.now(datetime.timezone.utc).isoformat(),
+                    'scope': 'Only supplied exact PDF URLs; no complete day/month coverage claim.', 'files': []}
+          class NoRedirect(HTTPRedirectHandler):
+              def redirect_request(self, req, fp, code, msg, headers, newurl):
+                  raise RuntimeError('Redirect received: stop and inspect before retrying')
+          opener = build_opener(NoRedirect())
+          try:
+              urls = list(dict.fromkeys(os.environ['PDF_URLS'].split()))
+              if not 1 <= len(urls) <= 50:
+                  raise ValueError('Supply between 1 and 50 exact PDF links')
+              names = set()
+              for url in urls:
+                  p = urlsplit(url)
+                  if (p.scheme != 'https' or p.netloc != 'puntcdn.com' or p.query or p.fragment
+                          or not re.fullmatch(r'/form-guides/\d{8}_[A-Za-z0-9_-]+_\d+\.pdf', p.path)):
+                      raise ValueError('Unsupported URL: use an exact https://puntcdn.com/form-guides/...pdf link')
+                  name = p.path.rsplit('/', 1)[-1]
+                  if name in names:
+                      raise ValueError('Conflicting file names in supplied URLs')
+                  names.add(name)
+              for index, url in enumerate(urls):
+                  if index: time.sleep(20)
+                  item = {'url': url}; report['files'].append(item)
+                  print('Downloading', url, flush=True)
+                  with opener.open(Request(url, headers={'User-Agent': 'FormGuidePDFCollector/1.0 (personal sequential downloader)'}), timeout=60) as response:
+                      item['http_status'] = response.status
+                      item['content_type'] = response.headers.get('Content-Type', '')
+                      raw = response.read(20000001)
+                  if len(raw) > 20000000: raise ValueError('Response exceeds 20 MB')
+                  if not raw.startswith(b'%PDF-'):
+                      (out / 'unexpected-response.bin').write_bytes(raw)
+                      raise ValueError('Response is not a PDF; inspect saved response')
+                  reader = PdfReader(io.BytesIO(raw), strict=False)
+                  if not reader.pages: raise ValueError('PDF has no readable pages')
+                  name = urlsplit(url).path.rsplit('/', 1)[-1]
+                  (out / name).write_bytes(raw)
+                  first_page = reader.pages[0].extract_text() or ''
+                  race_numbers = sorted(set(int(n) for n in re.findall(r'\bRace\s+(\d+)\b', first_page)))
+                  item.update(file=name, bytes=len(raw), sha256=hashlib.sha256(raw).hexdigest(),
+                              pages=len(reader.pages), title=str((reader.metadata or {}).get('/Title', '')),
+                              creation_date=str((reader.metadata or {}).get('/CreationDate', '')),
+                              cover_race_numbers=race_numbers, cover_text=first_page[:6000],
+                              status='downloaded_requires_content_review')
+                  print('Saved', name, 'pages:', len(reader.pages), flush=True)
+              report['status'] = 'downloaded_requires_content_review'
+          except Exception as exc:
+              report.update(status='stopped', error=str(exc))
+              print('STOP:', exc, flush=True)
+              raise
+          finally:
+              (out / 'manifest.json').write_text(json.dumps(report, indent=2), encoding='utf-8')
+      - name: Save PDFs and report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: punters-pdf-guides-${{ github.run_id }}
+          path: pdf-guides/
+          retention-days: 14
+          if-no-files-found: warn
