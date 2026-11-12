@@ -21,4 +21,4 @@ jobs:
           BETFAIR_PASSWORD: ${{ secrets.BETFAIR_PASSWORD }}
           BETFAIR_CERT: ${{ secrets.BETFAIR_CERT }}
           BETFAIR_PRIVATE_KEY: ${{ secrets.BETFAIR_PRIVATE_KEY }}
-        run: python scripts/betfair_auth_check.py
+        run: python betfair_auth_check.py
