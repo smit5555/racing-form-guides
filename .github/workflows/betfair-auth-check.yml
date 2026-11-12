@@ -1,0 +1,24 @@
+name: Betfair authentication check
+on:
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Check certificate login and market access
+        env:
+          BETFAIR_APP_KEY: ${{ secrets.BETFAIR_APP_KEY }}
+          BETFAIR_USERNAME: ${{ secrets.BETFAIR_USERNAME }}
+          BETFAIR_PASSWORD: ${{ secrets.BETFAIR_PASSWORD }}
+          BETFAIR_CERT: ${{ secrets.BETFAIR_CERT }}
+          BETFAIR_PRIVATE_KEY: ${{ secrets.BETFAIR_PRIVATE_KEY }}
+        run: python scripts/betfair_auth_check.py
